@@ -1,0 +1,15 @@
+conda install -c rdkit rdkit-postgresql
+conda install -c conda-forge jupyterlab
+conda install -c rdkit rdkit
+conda install jupyter 
+conda install pandas 
+conda install scipy
+conda install matplotlib
+conda install pymongo 
+conda install pyyaml 
+conda install fabric 
+conda install xlrd 
+conda install appdirs 
+conda install openpyxl
+
+# optional : pymongo & appdirs
