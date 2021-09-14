@@ -1,55 +1,39 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
+import gc
 
 ## MAIN FUNCTION ##
 #returns a list of smiles fragments list from a reactant and product list
 
 def gen_fragments_on_CO_break(df_column_react, df_column_prod):
-    print("coucou")
-    N = 0
     mol_frags = [] #liste des listes de fragments des molécules
     for i, smi in enumerate(df_column_react):
-        N += 1
-        print(N)
         frags = gen_frag_on_CO_break(smi, df_column_prod[i]) 
         mol_frags.append(frags)
-        print(N)
     return mol_frags
 
 def gen_frag_on_CO_break(smi, prod):
-    
     react_w = Chem.rdMolDescriptors.CalcExactMolWt(Chem.MolFromSmiles(smi)) # poids du reactif
     m = Chem.MolFromSmiles(smi)
-    # renvoie les couples d'atomes correspondants aux liaisons C-aromatique/Oxygène
-    bis = m.GetSubstructMatches(Chem.MolFromSmarts('[c][O]')) 
+    bis = m.GetSubstructMatches(Chem.MolFromSmarts('[c][O]'))  # renvoie les couples d'atomes correspondants aux liaisons C-aromatique/Oxygène
     bis = remove_OH_bad_frag(m, bis)
     if len(bis) == 1: # cas où il y a une seule liaison C-aromatique/Oxygène : pas d'ambiguité !
-       # print('len bis = 1')
-        frags = gen_frags(m, react_w, bis)
-        
+        frags = gen_frags(m, react_w, bis)   
     elif len(bis) == 0: # cas où il n'y a pas de liaison C-aromatique/Oxygène : O est aussi aromatique !
-        frags = gen_oc_frags(m, react_w)
-       # print('len bis = 0')
-        
+        frags = gen_oc_frags(m, react_w)   
     else: # cas où len(bis) > 1 : il y a au moins deux sites de fragmentation donc il faut faire des choix !
-       # print('len bis > 1')
         if m.HasSubstructMatch(Chem.MolFromSmiles('Oc1nc(O)nc(O)n1')): # cas chiant de la publi des triazines
-            frags = gen_frag_triaz(m, react_w)
-            
+            frags = gen_frag_triaz(m, react_w)    
         else:
-            frags = gen_frags(m, react_w, bis)
-            
+            frags = gen_frags(m, react_w, bis)         
     if len(unique_elements(frags)) > 2 :
         frags = rm_non_react_frags(frags, smi, prod, react_w) 
-
+        
     can_frags = []
     for frag in frags:
         can_frags.append(rm_atmap(frag))
-    #if len(unique_elements(frags)) > 2:
-    #    print(can_frags, smi, prod, "len unique frags > 2")
         
-    #if len(frags) == 1:
-    #    print(can_frags, smi, prod, "len unique frags = 1")
+    gc.collect()
     return can_frags
 
 
