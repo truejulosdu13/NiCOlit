@@ -5,6 +5,7 @@ from rdkit.Chem import Draw
 
 # numerote le carbone aromatique 0 et l'oxygène 1
 def number_C0O1(mol, CO_frag, ar_frag):
+    well_numbered = True
     mol = mol_with_atom_index(mol)
     L = mol.GetSubstructMatches(Chem.MolFromSmarts('cO'))
     if len(L) == 0:
@@ -20,7 +21,8 @@ def number_C0O1(mol, CO_frag, ar_frag):
                 c = couple
         
     if c == None:
-        print(Chem.MolToSmiles(mol))
+        #print(Chem.MolToSmiles(mol))
+        well_numbered == False
         
     else:            
         for at in mol.GetAtoms():
@@ -32,75 +34,83 @@ def number_C0O1(mol, CO_frag, ar_frag):
                 reset_atom_map(mol, 0)
                 at.SetAtomMapNum(0)
     mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
-    return mol
-    
-# not sure this functions is usefull    ???
-def number_at_by_shared_ArOC(mol, ar_frag, CO_frag):
-    mol = mol_with_atom_index(mol)
-    n_share = 3
-    n_other = 8
-    shared_frag_1 = Chem.MolFromSmiles(CO_frag.replace('*', 'c8ccccc8'))
-    for at in mol.GetAtoms():
-        if at.GetIdx() not in mol.GetSubstructMatch(shared_frag_1):
-            reset_atom_map(mol, n_other)
-            at.SetAtomMapNum(n_other)
-            n_other += 1
-                    
-        elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts(CO_frag.replace('*',''))):
-            if mol.HasSubstructMatch(Chem.MolFromSmarts('Oc1ccccc1')):
-                if at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('Oc1ccccc1')): 
-                    if (at.GetIdx(),) in mol.GetSubstructMatches(Chem.MolFromSmiles('O')):
-                        reset_atom_map(mol, 1)
-                        at.SetAtomMapNum(1)  
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('COc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('[Si]Oc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('cOc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                else:
-                    reset_atom_map(mol, n_other)
-                    at.SetAtomMapNum(n_other)
-                    n_other += 1
-                    
-            elif mol.HasSubstructMatch(Chem.MolFromSmarts('oc1ccccc1')):
-                if at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('oc1ccccc1')): 
-                    if (at.GetIdx(),) in mol.GetSubstructMatches(Chem.MolFromSmiles('o')):
-                        reset_atom_map(mol, 1)
-                        at.SetAtomMapNum(1)  
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('coc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('Coc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('[Si]Oc')):
-                    reset_atom_map(mol, 2)
-                    at.SetAtomMapNum(2) 
-                else:
-                    reset_atom_map(mol, n_other)
-                    at.SetAtomMapNum(n_other)
-                    n_other += 1
-            
-        elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts(ar_frag.replace('(*)','').replace('*',''))):
-            if at.GetIdx() in mol.GetSubstructMatch(shared_frag_1):   
-                if at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('[O:1]c')):
-                    reset_atom_map(mol, 0)
-                    at.SetAtomMapNum(0)
-                
-            elif at.GetIdx() in mol.GetSubstructMatch(Chem.MolFromSmarts('Oc1ccccc1')):
-                    reset_atom_map(mol, n_share)
-                    at.SetAtomMapNum(n_share)
-                    n_share += 1
-            else:
-                print(ar_frag, CO_frag, Chem.MolToSmiles(mol))
+    return mol, well_numbered
 
-    mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
-    verif = verif_num(mol)
-    return mol, verif, shared_frag_1
+def number_C2C3(m):
+    n_at = 2
+    OCC = choose_goods_Occ(m)
+    OC = choose_good_OC(m)
+    for at in m.GetAtoms():
+        l = []
+        for j in OCC:
+            for k in j:
+                if k not in l:
+                    l.append(k)
+    for at in m.GetAtoms():
+        if at.GetIdx() in l:
+            if at.GetIdx() not in OC:
+                reset_atom_map(m, n_at)
+                at.SetAtomMapNum(n_at)
+                n_at +=1      
+
+    #m = Chem.MolFromSmarts(Chem.MolToSmarts(m))
+    m = Chem.MolFromSmiles(Chem.MolToSmiles(m))
+    return(m)
+
+def number_C456(m):
+    OBenz = choose_goods_Oc1ccccc1(m)
+    Occ_ats = []
+    for trouple in choose_goods_Occ(m):
+        for k in trouple:
+            if k not in Occ_ats:
+                Occ_ats.append(k)
+    n_at = 4            
+    for at in m.GetAtoms():
+        if at.GetIdx() in OBenz:
+            if at.GetIdx() not in Occ_ats:
+                reset_atom_map(m, n_at)
+                at.SetAtomMapNum(n_at)
+                n_at +=1
+            
+    m = Chem.MolFromSmiles(Chem.MolToSmiles(m))
+    return(m)
+
+  
+# functions usefull to identify aromatics atoms
+def choose_good_OC(m):
+    OC = list(m.GetSubstructMatches(Chem.MolFromSmarts('[O:1][c:0]')))
+    for couple in OC:
+        is_good = True
+        for at_idx in couple:
+            if m.GetAtomWithIdx(at_idx).GetAtomMapNum() > 1:
+                is_good = False
+        if is_good == True:
+            OC = couple
+    return OC
+
+def choose_goods_Occ(m):
+    OCC = list(m.GetSubstructMatches(Chem.MolFromSmarts('[O:1][c:0]c')))
+    good_Occs = []
+    for trouple in OCC:
+        if 0 in trouple and 1 in trouple:
+            good_Occs.append(trouple)
+    return good_Occs
+
+def choose_goods_Oc1ccccc1(m):
+    Obenz = list(m.GetSubstructMatches(Chem.MolFromSmarts('Oc1ccccc1')))
+    sub_ats = []
+    for trouple in choose_goods_Occ(m):
+        for k in trouple:
+            if k not in sub_ats:
+                sub_ats.append(k)
+    for OBz in Obenz:
+        is_good = True
+        for at_idx in sub_ats:
+            if at_idx not in OBz:
+                is_good = False
+        if is_good == True:
+            Obenz = OBz
+    return Obenz
 
 ## check potential errors functions ##
 
@@ -115,6 +125,40 @@ def verif_num(mol):
         if at.GetAtomMapNum() == 0 and at.GetAtomicNum() != 6:
             verif = False
     return verif
+
+def numbering_arom_fine(mol):
+    good = True
+    sub_struct = Chem.MolFromSmiles('Oc1ccccc1') 
+    idx_matching = mol.GetSubstructMatch(sub_struct)
+    map_matching = [mol.GetAtomWithIdx(idx_matching[i]).GetAtomMapNum() for i in range(len(idx_matching))]
+    for i in range(7):
+        if i not in map_matching:
+            good = False
+            
+    if 0 in map_matching:
+        if mol.GetAtomWithIdx(idx_matching[map_matching.index(0)]).GetSymbol() != 'C':
+            good = False
+    else:
+        good = False
+        
+    if 1 in map_matching:
+        if mol.GetAtomWithIdx(idx_matching[map_matching.index(1)]).GetSymbol() != 'O':
+            good = False
+    else:
+        good = False
+    return good
+
+def show_DOIS(mol, df):
+    smi_can = Chem.MolToSmiles(remove_at_map(mol)) 
+    dois_id = []
+    for i, smis in enumerate(df["Reactant Smile (C-O)"]):
+        if Chem.MolToSmiles(Chem.MolFromSmiles(smis)) == smi_can:
+            dois_id.append(df["DOI"][i])
+    dois = []
+    for doi in dois_id:
+        if doi not in dois:
+            dois.append(doi)
+    return dois
 
 ## small renumbering usefull functions ##
 
