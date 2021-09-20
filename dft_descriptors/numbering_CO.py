@@ -75,6 +75,50 @@ def number_C456(m):
     m = Chem.MolFromSmiles(Chem.MolToSmiles(m))
     return(m)
 
+def number_7(m):  
+    cOC = list(m.GetSubstructMatches(Chem.MolFromSmarts('cOC')))
+    for trouple in cOC:
+        good = False
+        trouple_map = [m.GetAtomWithIdx(at_idx).GetAtomMapNum() for at_idx in trouple]
+        if 1 in trouple_map:
+            if 0 in trouple_map:
+                good = True
+        if good == True:
+            for at_idx in trouple:
+                if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 1:
+                    if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 0:
+                        reset_atom_map(m, 7)
+                        m.GetAtomWithIdx(at_idx).SetAtomMapNum(7)
+    
+    cOc = list(m.GetSubstructMatches(Chem.MolFromSmarts('cOc')))
+    for trouple in cOc:
+        good = False
+        trouple_map = [m.GetAtomWithIdx(at_idx).GetAtomMapNum() for at_idx in trouple]
+        if 1 in trouple_map:
+            if 0 in trouple_map:
+                good = True
+        if good == True:
+            for at_idx in trouple:
+                if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 1:
+                    if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 0:
+                        reset_atom_map(m, 7)
+                        m.GetAtomWithIdx(at_idx).SetAtomMapNum(7)
+                        
+    cOSi = list(m.GetSubstructMatches(Chem.MolFromSmarts('cO[Si]')))
+    for trouple in cOSi:
+        good = False
+        trouple_map = [m.GetAtomWithIdx(at_idx).GetAtomMapNum() for at_idx in trouple]
+        if 1 in trouple_map:
+            if 0 in trouple_map:
+                good = True
+        if good == True:
+            for at_idx in trouple:
+                if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 1:
+                    if m.GetAtomWithIdx(at_idx).GetAtomMapNum() != 0:
+                        reset_atom_map(m, 7)
+                        m.GetAtomWithIdx(at_idx).SetAtomMapNum(7)
+    return m
+
   
 # functions usefull to identify aromatics atoms
 def choose_good_OC(m):
@@ -148,6 +192,58 @@ def numbering_arom_fine(mol):
         good = False
     return good
 
+def numbering_8_fine(mol):
+    good = True
+    if mol.HasSubstructMatch(Chem.MolFromSmiles('COc1ccccc1')):
+        sub_struct = Chem.MolFromSmiles('COc1ccccc1') 
+        idx_matching = mol.GetSubstructMatch(sub_struct)
+        map_matching = [mol.GetAtomWithIdx(idx_matching[i]).GetAtomMapNum() for i in range(len(idx_matching))]
+        for i in range(8):
+            if i not in map_matching:
+                good = False
+        if good == True:    
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(0)]).GetSymbol() != 'C':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(1)]).GetSymbol() != 'O':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(7)]).GetSymbol() != 'C':
+                good = False
+    
+    elif mol.HasSubstructMatch(Chem.MolFromSmarts('c1ccccc1O[Si]')):
+        sub_struct = Chem.MolFromSmarts('[Si]Oc1ccccc1') 
+        idx_matching = mol.GetSubstructMatch(sub_struct)
+        map_matching = [mol.GetAtomWithIdx(idx_matching[i]).GetAtomMapNum() for i in range(len(idx_matching))]
+        for i in range(8):
+            if i not in map_matching:
+                good = False
+        if good == True:    
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(0)]).GetSymbol() != 'C':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(1)]).GetSymbol() != 'O':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(7)]).GetSymbol() != 'Si':
+                good = False
+                
+        
+    elif mol.HasSubstructMatch(Chem.MolFromSmarts('cOc1ccccc1')):
+        sub_struct = Chem.MolFromSmiles('cOc1ccccc1') 
+        idx_matching = mol.GetSubstructMatch(sub_struct)
+        map_matching = [mol.GetAtomWithIdx(idx_matching[i]).GetAtomMapNum() for i in range(len(idx_matching))]
+        for i in range(8):
+            if i not in map_matching:
+                good = False
+        if good == True:    
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(0)]).GetSymbol() != 'C':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(1)]).GetSymbol() != 'O':
+                good = False
+            if mol.GetAtomWithIdx(idx_matching[map_matching.index(7)]).GetSymbol() != 'C':
+                good = False
+                         
+    else:
+        good = False
+    return good
+
 def show_DOIS(mol, df):
     smi_can = Chem.MolToSmiles(remove_at_map(mol)) 
     dois_id = []
@@ -191,15 +287,15 @@ def reset_atom_map(mol, n):
     for at in mol.GetAtoms():
         if at.GetAtomMapNum() == n:
             at.SetAtomMapNum(n_max)
-            
+                
 def rescale_atom_map(mol):
     l = list_at_nums(mol)
     L = len(l)
-    if max(l) >= L:
+    while max(l) > L:
         mini = 0
         while mini in l:
             mini += 1
-        print(mini)
         for at in mol.GetAtoms():
             if at.GetAtomMapNum() == max(l):
                 at.SetAtomMapNum(mini)
+        l = list_at_nums(mol)
