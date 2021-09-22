@@ -1,15 +1,4 @@
-conda install -c rdkit rdkit-postgresql
-conda install -c conda-forge jupyterlab
-conda install -c rdkit rdkit
-conda install jupyter 
-conda install pandas 
-conda install scipy
-conda install matplotlib
-conda install pymongo 
-conda install pyyaml 
-conda install fabric 
-conda install xlrd 
-conda install appdirs 
-conda install openpyxl
-
-# optional : pymongo & appdirs
+conda create --name dft_for_sm python=3.9
+conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl
+conda install -c conda-forge openbabel=3.1.1
+conda install -c conda-forge rdkit=2021.03.5
