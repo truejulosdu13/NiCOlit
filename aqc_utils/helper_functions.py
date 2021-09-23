@@ -45,9 +45,9 @@ def ssh_connect(host, user) -> fabric.Connection:
     :param user: username to authenticate on remote host
     :return: fabric.Connection
     """
-    #host = "neel.chimie.ens.fr"
+    host = "neel.chimie.ens.fr"
     port = 22
-    #user = "jschleinitz"
+    user = "jschleinitz"
     password = "Fisk5oc%"
     
     client = paramiko.SSHClient()
