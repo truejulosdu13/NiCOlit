@@ -1,2 +1,3 @@
 # DFT_for_SM
-pipeline Smiles -> Gaussian input
+
+Un cool repo avec maxouille la fripouille
