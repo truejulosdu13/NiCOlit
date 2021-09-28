@@ -9,6 +9,7 @@ from aqc_utils.db_functions import *
 from aqc_utils.gaussian_input_generator import *
 from aqc_utils.helper_functions import *
 from aqc_utils.openbabel_functions import *
+from aqc_utils.gaussian_log_extractor import *
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,6 @@ class slurm_manager(object):
 
         # create gaussian files
         molecule_workdir = os.path.join(self.workdir, molecule.fs_name)
-        print(molecule_workdir)
         gig = gaussian_input_generator(molecule, workflow_type, molecule_workdir, theory, light_basis_set,
                                        heavy_basis_set, generic_basis_set, max_light_atomic_number)
         gaussian_config = {'theory': theory,
@@ -102,6 +102,13 @@ class slurm_manager(object):
                            'heavy_basis_set': heavy_basis_set,
                            'generic_basis_set': generic_basis_set,
                            'max_light_atomic_number': max_light_atomic_number}
+        
+        # DB check if the same molecule with the same gaussian configuration already exists
+        exists, tags = db_check_exists(molecule.can, gaussian_config, molecule.max_num_conformers)
+        if exists:
+            logger.warning(f"Molecule {molecule.can} already exists with the same Gaussian config with tags {tags}."
+                           f" Not creating jobs.")
+            return
 
         gig.create_gaussian_files()
 
@@ -165,7 +172,9 @@ class slurm_manager(object):
                 self.connection.put(f"{job.directory}/{job.base_name}.com", self.remote_dir)
 
                 with self.connection.cd(self.remote_dir):
-                    ret = self.connection.run(f"sbatch {self.remote_dir}/{job.base_name}.sh", hide=True)
+                    ret = self.connection.run(f"source /etc/profile.d/modules.sh \
+                            && module load gcc/7.4.0 openmpi/3.1.4_gcc-7.4.0 orca/4.2.1 \
+                            && sbatch {self.remote_dir}/{job.base_name}.sh")
                     job.job_id = re.search("job\s*(\d+)\n", ret.stdout).group(1)
                     job.status = slurm_status.submitted
                     job.n_submissions = job.n_submissions + 1

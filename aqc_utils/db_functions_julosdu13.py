@@ -40,14 +40,14 @@ def db_connect(collection=None) -> pymongo.collection.Collection:
     cli = pymongo.MongoClient("mongodb+srv://julosdu13:yPbcgFmN6Uji9Gt@cluster0.f4bxg.mongodb.net/Cluster0?retryWrites=true&w=majority")
     
 #db = client.test
-    cli = pymongo.MongoClient(config['mongoDB']['host'],
-                              username=config['mongoDB']['user'],
-                              password=config['mongoDB']['password'],
-                              port=config['mongoDB']['port'])
+#    cli = pymongo.MongoClient(config['mongoDB']['host'],
+#                              username=config['mongoDB']['user'],
+#                              password=config['mongoDB']['password'],
+#                              port=config['mongoDB']['port'])
     if collection is None:
-        return cli['autoqchem']
+        return cli['dft_for_nicoupling']
     else:
-        return cli['autoqchem'][collection]
+        return cli['dft_for_nicoupling'][collection]
 
 
 def db_upload_molecule(can, tags, metadata, weights, conformations, logs) -> ObjectId:
