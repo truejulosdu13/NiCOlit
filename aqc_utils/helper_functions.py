@@ -45,7 +45,7 @@ def ssh_connect(host, user) -> fabric.Connection:
     :param user: username to authenticate on remote host
     :return: fabric.Connection
     """
-    host = "neel.chimie.ens.fr"
+    host = "hermite.chimie.ens.fr"
     port = 22
     user = "jschleinitz"
     password = "Fisk5oc%"
@@ -55,11 +55,8 @@ def ssh_connect(host, user) -> fabric.Connection:
     client.connect(host, port, user, password)
     
     c = fabric.Connection(host)
-    #, user, port=22, config=None, gateway=None, forward_agent=True, connect_timeout=None, connect_kwargs=None, inline_ssh_env=None)
     c.client = client
     c.transport = client.get_transport()
-    #c.forward_remote(22, local_port=22, remote_host='127.0.1.1', local_host='localhost')
-    #c.open_gateway(forward_remote)
 
     return c
 

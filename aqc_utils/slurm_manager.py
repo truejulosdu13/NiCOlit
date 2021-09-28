@@ -156,7 +156,8 @@ class slurm_manager(object):
         if jobs:
             # get or create connection
             self.connect()
-
+            #self.connection.run("module load gcc/7.4.0 openmpi/3.1.4_gcc-7.4.0 orca/4.2.1")
+            
             # check if jobs are in status created or failed
             for name, job in jobs.items():
                 # copy .sh and .gjf file to remote_dir
