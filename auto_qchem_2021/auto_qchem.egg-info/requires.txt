@@ -1,0 +1,8 @@
+numpy
+pandas
+pyyaml
+scipy
+fabric
+paramiko
+pymongo
+appdirs

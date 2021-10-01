@@ -163,7 +163,6 @@ class slurm_manager(object):
         if jobs:
             # get or create connection
             self.connect()
-            #self.connection.run("module load gcc/7.4.0 openmpi/3.1.4_gcc-7.4.0 orca/4.2.1")
             
             # check if jobs are in status created or failed
             for name, job in jobs.items():
@@ -181,11 +180,38 @@ class slurm_manager(object):
                     logger.info(f"Submitted job {name}, job_id: {job.job_id}.")
 
             self._cache()
-
+            
+    
+    def update_submitted_jobs(self) -> None:
+        """Updated status for submitted jobs that have status 'created'"""
+        jobs = self.get_jobs(slurm_status.created)
+        self.update_status(jobs)
+      
+    
+    def update_status(self, jobs) -> None:
+    # check if there are any jobs created 
+        if jobs:
+            # get or create connection
+            self.connect()
+            
+            # check if jobs are in status created 
+            for name, job in jobs.items():
+                with self.connection.cd(self.remote_dir):
+                    try:
+                        self.connection.run(f"grep -A 1 \"Entering Gaussian System\" {job.base_name}.log")
+                        job.status = slurm_status.submitted
+                    except:
+                        pass
+                
+            self._cache()
+        
+        
     def retrieve_jobs(self) -> None:
         """Retrieve finished jobs from remote host and check which finished succesfully and which failed."""
 
         ids_to_check = [j.job_id for j in self.get_jobs(slurm_status.submitted).values()]
+        ids_to_check.append(j.job_id for j in self.get_jobs(slurm_status.failed).values())
+        ids_to_check.append(j.job_id for j in self.get_jobs(slurm_status.incomplete).values())
         if not ids_to_check:
             logger.info(f"There are no jobs submitted to cluster. Nothing to retrieve.")
             return
