@@ -60,15 +60,21 @@ def db_upload_molecule(can, tags, metadata, weights, conformations, logs) -> Obj
 
     # create molecule record and insert it
     mol_data = {'can': can, 'metadata': metadata}
-    ret = mols_coll.insert_one(mol_data)
-    mol_id = ret.inserted_id
+    # try/except added by julosdu13
+    try:
+        ret = mols_coll.insert_one(mol_data)
+        mol_id = ret.inserted_id
 
-    # insert tag record
-    for tag in tags:
-        tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id, 'can': can})
-
-    for weight, conformation, log in zip(weights, conformations, logs):
-        db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=False)
+        # insert tag record
+        for tag in tags:
+            tags_coll.insert_one({'tag': tag, 'molecule_id': mol_id, 'can': can})
+    
+        for weight, conformation, log in zip(weights, conformations, logs):
+            db_upload_conformation(mol_id, can, weight, conformation, log, check_mol_exists=False)
+            
+    except:
+        mol_id = None
+        
     return mol_id
 
 

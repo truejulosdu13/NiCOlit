@@ -316,7 +316,7 @@ class gaussian_log_extractor(object):
         # APT charges
         try:
             string = re.search("APT charges.*?\n(.*?)\n\s*Sum of APT", text, re.DOTALL).group(1)
-            charges = np.array(list(map(str.split, string.splitlines()))[1:])[:, 2]
+            charges = np.array(list(map(str.split, string.splitlines()))[1:], dtype=object)[:, 2]
             apt = pd.Series(charges, name='APT_charge')
         except (IndexError, AttributeError):
             try:
