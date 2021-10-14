@@ -31,10 +31,9 @@ class gaussian_log_extractor(object):
 
         :param log_file_path: local path of the log file
         """
-
+        print(log_file_path)
         with open(log_file_path) as f:
             self.log = f.read()
-
         # initialize descriptors
         self.descriptors = {}
         self.atom_freq_descriptors = None
@@ -76,8 +75,16 @@ class gaussian_log_extractor(object):
 
         self._extract_descriptors()
         # concatenate atom_desciptors from various sources
-        self.atom_descriptors = pd.concat([self.geom[list('XYZ')],
+        try:
+            self.geom
+            self.atom_descriptors = pd.concat([self.geom[list('XYZ')],
                                            self.vbur,
+                                           self.atom_freq_descriptors,
+                                           self.atom_td_descriptors], axis=1)
+            
+        except AttributeError:
+            self.atom_descriptors = pd.concat([#[self.geom[list('XYZ')],
+                                           #self.vbur,
                                            self.atom_freq_descriptors,
                                            self.atom_td_descriptors], axis=1)
 
@@ -96,11 +103,17 @@ class gaussian_log_extractor(object):
 
         logger.debug(f"Extracting descriptors.")
         self.get_atom_labels()  # atom labels
-        self.get_geometry()  # geometry
-        self._compute_occupied_volumes()  # compute buried volumes
+        try:
+            self.get_geometry()  # geometry
+            self._compute_occupied_volumes()  # compute buried volumes
+        except:
+            pass
         self._get_frequencies_and_moment_vectors()
         self._get_freq_part_descriptors()  # fetch descriptors from frequency section
-        self._get_td_part_descriptors()  # fetch descriptors from TD section
+        try:
+            self._get_td_part_descriptors()  # fetch descriptors from TD section
+        except AttributeError:
+            pass
 
     def get_atom_labels(self) -> None:
         """Find the the z-matrix and collect atom labels."""
@@ -129,10 +142,11 @@ class gaussian_log_extractor(object):
 
     def get_geometry(self) -> None:
         """Extract geometry dataframe from the log."""
+        
 
         # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"
         geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational constants",
-                           self.log, re.DOTALL)
+                               self.log, re.DOTALL)
 
         # use the last available geometry block
         geom = geoms[-1]

@@ -64,8 +64,9 @@ class gaussian_input_generator(object):
         os.makedirs(self.directory, exist_ok=True)
 
         # resources configuration
-        n_processors = max(1, min(config['slurm']['max_processors'],
-                                  self.molecule.mol.NumAtoms() // config['slurm']['atoms_per_processor']))
+        n_processors = 1
+        #max(1, min(config['slurm']['max_processors'],
+        #                          self.molecule.mol.NumAtoms() // config['slurm']['atoms_per_processor']))
         ram = n_processors * config['slurm']['ram_per_processor']
         resource_block = f"%nproc={n_processors}\n%mem={ram}gb\n"
 
