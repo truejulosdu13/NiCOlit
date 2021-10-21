@@ -244,10 +244,10 @@ def numbering_8_fine(mol):
         good = False
     return good
 
-def show_DOIS(mol, df):
+def show_DOIS(mol, column, df):
     smi_can = Chem.MolToSmiles(remove_at_map(mol)) 
     dois_id = []
-    for i, smis in enumerate(df["Reactant Smile (C-O)"]):
+    for i, smis in enumerate(df[column]):
         if Chem.MolToSmiles(Chem.MolFromSmiles(smis)) == smi_can:
             dois_id.append(df["DOI"][i])
     dois = []
@@ -255,6 +255,23 @@ def show_DOIS(mol, df):
         if doi not in dois:
             dois.append(doi)
     return dois
+
+def show_smiles(mol, df):
+    smi_can = Chem.CanonSmiles(Chem.MolToSmiles(remove_at_map(mol)))
+    all_smiles = []
+    for column in df.columns:
+        for i, smis in enumerate(df[column]):
+            try:
+                can_smi = Chem.CanonSmiles(smis)
+                if can_smi == smi_can:
+                    all_smiles.append(smis)
+            except:
+                pass
+    smiles = []
+    for smi in all_smiles:
+        if smi not in smiles:
+            smiles.append(smi)
+    return smiles
 
 ## small renumbering usefull functions ##
 
