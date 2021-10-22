@@ -150,13 +150,19 @@ dict_ligand = {
           "nan" : "nan",
           "dppf + PCy3" : "[Fe].[CH]1[CH][CH][C]([CH]1)P(c2ccccc2)c3ccccc3.[CH]4[CH][CH][C]([CH]4)P(c5ccccc5)c6ccccc6.P(C1CCCCC1)(C2CCCCC2)C3CCCCC3",
           "c2c[n+](C1CCCCC1)cn2C3CCCCC3.[Cl-]" : "c2c[n+](C1CCCCC1)cn2C3CCCCC3.[Cl-]",
-          "O=[Mo](=O)([O-])O[Mo](=O)(=O)On1cc[n+](O[Mo](=O)(=O)O[Mo](=O)(=O)[O-])c1.[NH4+].[NH4+].F[B-](F)(F)F" : "O=[Mo](=O)([O-])O[Mo](=O)(=O)On1cc[n+](O[Mo](=O)(=O)O[Mo](=O)(=O)[O-])c1.[NH4+].[NH4+].F[B-](F)(F)F",
-          "CC(C)n1cc[n+](C(C)C)c1.[Cl-]" : "CC(C)n1cc[n+](C(C)C)c1.[Cl-]",
-          "[Br-].[Br-].Cn2cc[n+](C[n+]1ccn(C)c1)c2" : "[Br-].[Br-].Cn2cc[n+](C[n+]1ccn(C)c1)c2",
-          "[Br-].[Br-].CC(C)n2cc[n+](C[n+]1ccn(C(C)C)c1)c2" : "[Br-].[Br-].CC(C)n2cc[n+](C[n+]1ccn(C(C)C)c1)c2",
-          "[Br-].[Br-].CC(C)(C)n2cc[n+](C[n+]1ccn(C(C)(C)C)c1)c2" : "[Br-].[Br-].CC(C)(C)n2cc[n+](C[n+]1ccn(C(C)(C)C)c1)c2",
-          "[Br-].[Br-].c3c[n+](C[n+]2ccn(C1CCCCC1)c2)cn3C4CCCCC4" : "[Br-].[Br-].c3c[n+](C[n+]2ccn(C1CCCCC1)c2)cn3C4CCCCC4",
+          "IIpr-HCl" : "CC(C)n1cc[n+](C(C)C)c1.[Cl-]",
+          "IIpr" : "CC(C)N1C=CN(C(C)C)C1",
+          "(IMe)2-2HBr" : "[Br-].[Br-].Cn2cc[n+](C[n+]1ccn(C)c1)c2",
+          "(IMe)2" : "CN1C=CN(CN2C=CN(C)C2)C1",
+          "IPrIMeIIPr-2HBr" : "[Br-].[Br-].CC(C)n2cc[n+](C[n+]1ccn(C(C)C)c1)c2",
+          "IPrIMeIIPr" : "CC(C)N2C=CN(CN1C=CN(C(C)C)C1)C2",
+          "ItBuIMeIItBu-2HBr" : "[Br-].[Br-].CC(C)(C)n2cc[n+](C[n+]1ccn(C(C)(C)C)c1)c2",
+          "ItBuIMeIItBu" : "CC(C)(C)N2C=CN(CN1C=CN(C(C)(C)C)C1)C2",
+          "ICyIMeIICy-2HBr" : "[Br-].[Br-].c3c[n+](C[n+]2ccn(C1CCCCC1)c2)cn3C4CCCCC4",
+          "ICyIMeIICy" : "C1CCCCC1N2C=CN(CN1C=CN(C3CCCCC3)C1)C2",
           "C2=CN(C1CCCCC1)CN2C3CCCCC3" : "C2=CN(C1CCCCC1)CN2C3CCCCC3",
           "CC(C)(C)n2cc[n+](n1cc[n+](C(C)(C)C)c1)c2.[Br-].[Br-]" : "CC(C)(C)n2cc[n+](n1cc[n+](C(C)(C)C)c1)c2.[Br-].[Br-]",
           "IC1CCCCC1" : "IC1CCCCC1"
     }
+
+'CC(C)n1cc[n+](C(C)C)c1.[Cl-]'
