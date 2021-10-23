@@ -5,9 +5,11 @@ sys.path.append('../')
 
 from rdkit import Chem
 import dft_descriptors.numbering_CO as nb
+import dft_descriptors.prepocessing as pp
 from aqc_utils.molecule import molecule
 from aqc_utils.db_functions import *
 from aqc_utils.openbabel_functions import *
+
 
 import hashlib
 import logging
@@ -21,12 +23,19 @@ def generates_descriptors(mol_df, parameter):
     """ parameter indicates the member of the reaction you want to generate descriptors """
     
     # keep the infos on the parameter you need
-    data_df = pd.read_csv('../data_csv/Data_test09032021.csv', sep = ',') 
-    num_df = pd.read_csv('../data_csv/fragments_0-7.csv')
+    data_df = pd.read_csv('../data_csv/Data_test10222021.csv', sep = ',') 
+    
     if parameter == "substrate":
         unik_smi = np.unique(data_df["Reactant Smile (C-O)"].tolist())
         can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_smi])
-       
+        num_df = pd.read_csv('../data_csv/fragments_0-7.csv')
+        
+    elif parameter == "ligand":
+        data_df = data_df[data_df['Ligand effectif'].notna()]
+        unik_lig = [pp.dict_ligand[i] for i in np.unique(data_df['Ligand effectif'])]
+        can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
+        num_df = pd.read_csv("../data_csv/num_ligands.csv")
+        
     # drop molecules that you don't want
     mol_sub_df = drop_non_needed_mols(mol_df, can_smis)
     print("we have ", len(mol_sub_df), " molecules to extract")
@@ -44,7 +53,7 @@ def generates_descriptors(mol_df, parameter):
         can, log = l['can'], l['log']
         fs_name = mol_fs_name(can) 
         smi_obabel, smi_shared = get_smis(can, mol_sub_df, num_df)
-        shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel)
+        shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel)   
         mol_desc = get_moldescriptors(can, log, fs_name, shared_to_obabel)
         if N == 0:
             full_df = mol_desc
@@ -112,7 +121,7 @@ def drop_non_needed_mols(mol_df, can_smis):
             idx_todrop.append(j)
         
     good_df = mol_df.drop(axis=0, index=idx_todrop)
-
+ 
     # drop all the molecules that don't have the good calculation setup
     dft_set = {'gaussian_config': {'theory': 'b3lyp',
                                'light_basis_set': '6-31G*',
@@ -130,7 +139,7 @@ def drop_non_needed_mols(mol_df, can_smis):
 
     idx_todrop = []
     for j, dft in enumerate(good_df["metadata"]):
-        if dft != dft_set:
+        if str(dft) != str(dft_set):
             idx_todrop.append(good_df.iloc[[j]].index[0])
 
     good_df = good_df.drop(axis=0, index=idx_todrop)
@@ -144,15 +153,42 @@ def get_smis(smi, obabel_df, num_df):
     return smi_obabel, smi_shared
 
 # returns the indexes of the autqchem atoms to extract for CO substrates
-def shared_to_obabel_idx(smi_shared, smi_obabel):
+def shared_to_obabel_idx(smi_shared, smi_obabel, parameter):
     s_t_r = shared_to_rdkit_can(smi_shared)
     r_t_o = rdkit_to_obabel_can(smi_obabel)
     s_t_o = []
-    for i in range(8):
-        idx_rdkit = s_t_r[i][1]
-        idx_obabel = r_t_o[idx_rdkit][1]
-        #couple = (i, idx_obabel)
-        s_t_o.append(idx_obabel)
+    if parameter == 'substrate':
+        for i in range(8):
+            idx_rdkit = s_t_r[i][1]
+            idx_obabel = r_t_o[idx_rdkit][1]
+            #couple = (i, idx_obabel)
+            s_t_o.append(idx_obabel)
+    elif parameter == 'ligand':
+        if smi_L_type(smi_obabel) == 'NHC':
+            for i in range(7):
+                idx_rdkit = s_t_r[i][1]
+                idx_obabel = r_t_o[idx_rdkit][1]
+                #couple = (i, idx_obabel)
+                s_t_o.append(idx_obabel)
+            idx_rdkit = s_t_r[8][1]
+            idx_obabel = r_t_o[idx_rdkit][1]
+            s_t_o.append(idx_obabel)
+        elif smi_L_type(smi_obabel) == 'Phos':
+            for i in range(4):
+                idx_rdkit = s_t_r[i][1]
+                idx_obabel = r_t_o[idx_rdkit][1]
+                #couple = (i, idx_obabel)
+                s_t_o.append(idx_obabel)
+                s_t_o.append(idx_obabel)
+        elif smi_L_type(smi_obabel) == 'DiPhos':
+            for i in range(8):
+                idx_rdkit = s_t_r[i][1]
+                idx_obabel = r_t_o[idx_rdkit][1]
+                #couple = (i, idx_obabel)
+                s_t_o.append(idx_obabel)
+        else:
+            s_t_o = [i for i in range(8)]
+            
     return s_t_o
 
 def shared_to_rdkit_can(smi_shared):
@@ -183,6 +219,18 @@ def rdkit_to_obabel_can(smi_obabel):
     for a in m_canonical.GetAtoms():
         atmaptidx.append((a.GetIdx(), int(a.GetProp("foo"))))
     return atmaptidx
+
+def smi_L_type(smi):
+    m = Chem.MolFromSmiles(smi)
+    if m.HasSubstructMatch(Chem.MolFromSmiles('N[C]N')):
+        typ = 'NHC'
+    elif m.HasSubstructMatch(Chem.MolFromSmiles('P')):
+        typ = 'Phos'
+        if len(m.GetSubstructMatches(Chem.MolFromSmiles('P'))) == 2:
+            typ = 'DiPhos'
+    else:
+        typ = 'other'
+    return typ
 
 # helper function to create file names the same way ACQ does
 def mol_fs_name(can):
