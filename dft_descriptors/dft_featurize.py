@@ -23,6 +23,10 @@ def generates_descriptors(mol_df, parameter):
     """ parameter indicates the member of the reaction you want to generate descriptors """
     
     # keep the infos on the parameter you need
+    tags_coll = db_connect("tags")
+    mols_coll = db_connect("molecules")
+    log_files_coll = db_connect("log_files")
+    
     data_df = pd.read_csv('../data_csv/Data_test10222021.csv', sep = ',') 
     
     if parameter == "substrate":
@@ -38,22 +42,27 @@ def generates_descriptors(mol_df, parameter):
         
     # drop molecules that you don't want
     mol_sub_df = drop_non_needed_mols(mol_df, can_smis)
+    
     print("we have ", len(mol_sub_df), " molecules to extract")
-    tags_coll = db_connect("tags")
-    mols_coll = db_connect("molecules")
-    log_files_coll = db_connect("log_files")
     # add fs_name to the table
     mol_sub_df['file_base_name'] = mol_sub_df['can'].map(mol_fs_name)
     X = [Chem.CanonSmiles(list(mol_sub_df["can"])[i]) for i in range(len(mol_sub_df))]
     mol_sub_df['can_rdkit'] = X
+    
+
+    # L = [eval(mol_sub_df._ids.tolist()[i])[0] for i in range(len(mol_sub_df))]
+    # print(L)
     # get a cursor that iterates over the log files
-    cursor = log_files_coll.find({'molecule_id' :{"$in": mol_sub_df.molecule_id.tolist()}}, {'log':1, 'can':1})
+    
+    cursor = log_files_coll.find({'molecule_id' : {"$in": mol_sub_df.molecule_id.to_list()}}, {'log': 1, 'can': 1})
+
     N = 0
     for l in cursor:
         can, log = l['can'], l['log']
+        print(can)
         fs_name = mol_fs_name(can) 
         smi_obabel, smi_shared = get_smis(can, mol_sub_df, num_df)
-        shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel)   
+        shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel, parameter)   
         mol_desc = get_moldescriptors(can, log, fs_name, shared_to_obabel)
         if N == 0:
             full_df = mol_desc
@@ -61,7 +70,7 @@ def generates_descriptors(mol_df, parameter):
             full_df = full_df.append(mol_desc)
         N += 1
     
-    return full_df        
+    return full_df     
         
 def get_moldescriptors(can, log, fs_name, shared_to_obabel):
     print(fs_name)
@@ -121,7 +130,7 @@ def drop_non_needed_mols(mol_df, can_smis):
             idx_todrop.append(j)
         
     good_df = mol_df.drop(axis=0, index=idx_todrop)
- 
+
     # drop all the molecules that don't have the good calculation setup
     dft_set = {'gaussian_config': {'theory': 'b3lyp',
                                'light_basis_set': '6-31G*',
@@ -139,7 +148,8 @@ def drop_non_needed_mols(mol_df, can_smis):
 
     idx_todrop = []
     for j, dft in enumerate(good_df["metadata"]):
-        if str(dft) != str(dft_set):
+        if dft != dft_set:
+        #if eval(dft)['gaussian_config'] != dft_set['gaussian_config']:
             idx_todrop.append(good_df.iloc[[j]].index[0])
 
     good_df = good_df.drop(axis=0, index=idx_todrop)

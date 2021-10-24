@@ -37,7 +37,7 @@ def db_connect(collection=None) -> pymongo.collection.Collection:
     :return: pymongo.collection.Collection
     """
     
-    cli = pymongo.MongoClient("mongodb+srv://julosdu13:yPbcgFmN6Uji9Gt@cluster0.f4bxg.mongodb.net/Cluster0?retryWrites=true&w=majority")
+#    cli = pymongo.MongoClient("mongodb+srv://julosdu13:yPbcgFmN6Uji9Gt@cluster0.f4bxg.mongodb.net/Cluster0?retryWrites=true&w=majority")
     
 #db = client.test
     cli = pymongo.MongoClient(config['mongoDB']['host'],
