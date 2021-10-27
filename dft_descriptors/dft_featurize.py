@@ -27,7 +27,7 @@ def generates_descriptors(mol_df, parameter):
     mols_coll = db_connect("molecules")
     log_files_coll = db_connect("log_files")
     
-    data_df = pd.read_csv('../data_csv/Data_test10222021.csv', sep = ',') 
+    data_df = pd.read_csv('../data_csv/Data_test10252021.csv', sep = ',') 
     
     if parameter == "substrate":
         unik_smi = np.unique(data_df["Reactant Smile (C-O)"].tolist())
@@ -39,6 +39,12 @@ def generates_descriptors(mol_df, parameter):
         unik_lig = [pp.dict_ligand[i] for i in np.unique(data_df['Ligand effectif'])]
         can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
         num_df = pd.read_csv("../data_csv/num_ligands.csv")
+    
+    elif parameter == "AX":
+        data_df = data_df[data_df['A-X effectif'].notna()]
+        unik_lig = [i for i in np.unique(data_df['A-X effectif'])]
+        can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
+        num_df = pd.read_csv("../data_csv/num_AX.csv")
         
     # drop molecules that you don't want
     mol_sub_df = drop_non_needed_mols(mol_df, can_smis)
@@ -63,7 +69,7 @@ def generates_descriptors(mol_df, parameter):
         fs_name = mol_fs_name(can) 
         smi_obabel, smi_shared = get_smis(can, mol_sub_df, num_df)
         shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel, parameter)   
-        mol_desc = get_moldescriptors(can, log, fs_name, shared_to_obabel)
+        mol_desc = get_moldescriptors(can, log, fs_name, shared_to_obabel, parameter)
         if N == 0:
             full_df = mol_desc
         else:
@@ -72,7 +78,7 @@ def generates_descriptors(mol_df, parameter):
     
     return full_df     
         
-def get_moldescriptors(can, log, fs_name, shared_to_obabel):
+def get_moldescriptors(can, log, fs_name, shared_to_obabel, parameter):
     print(fs_name)
     with open(f"{path}/{fs_name}_0.log", "w") as f:
         f.write(log)
@@ -82,21 +88,25 @@ def get_moldescriptors(can, log, fs_name, shared_to_obabel):
         mol_descriptors = extractor.get_descriptors()
         dict_global = mol_descriptors['descriptors']
         atom_descriptors = mol_descriptors['atom_descriptors'] 
-        dict_atoms = select_at_desc(shared_to_obabel, atom_descriptors)
+        dict_atoms = select_at_desc(shared_to_obabel, atom_descriptors, parameter)
         dict_global.update(dict_atoms)
         dict_trans = get_transitions(mol_descriptors['transitions'])
         dict_global.update(dict_trans)
-        dict_labels = get_labels(shared_to_obabel, mol_descriptors['labels'])
+        dict_labels = get_labels(shared_to_obabel, mol_descriptors['labels'], parameter)
         dict_global.update(dict_labels)
         df = pd.DataFrame.from_dict(dict_global, orient ='index', columns=[f"{can}"]).T
         os.remove(log_name)
     return df
 
-def select_at_desc(shared_to_obabel, atom_descriptors):
+def select_at_desc(shared_to_obabel, atom_descriptors, parameter):
+    if parameter == 'ligand' or parameter == 'substrate':
+        n = 8
+    elif parameter == 'AX':
+        n = 4
     select_at_descriptors = dict()
     for key in atom_descriptors.keys():
         key_d = atom_descriptors[key]
-        reduced_descriptor = [key_d[shared_to_obabel[i]] for i in range(8)]
+        reduced_descriptor = [key_d[shared_to_obabel[i]] for i in range(n)]
         for i in range(len(reduced_descriptor)):
             select_at_descriptors.update({str(key + f"_{i}"): reduced_descriptor[i]})
     return select_at_descriptors
@@ -109,9 +119,13 @@ def get_transitions(transitions):
             transitions_d.update({str(key + f"_{i}"): key_d[i]})
     return transitions_d
 
-def get_labels(shared_to_obabel, labels):
+def get_labels(shared_to_obabel, labels, parameter):
+    if parameter == 'ligand' or parameter == 'substrate':
+        n = 8
+    elif parameter == 'AX':
+        n = 4
     ret_labels = dict()
-    reduced_labels = [labels[shared_to_obabel[i]] for i in range(8)]
+    reduced_labels = [labels[shared_to_obabel[i]] for i in range(n)]
     for i in range(len(reduced_labels)):
         ret_labels.update({f"at_{i}" : reduced_labels[i]})
     return ret_labels  
@@ -173,6 +187,7 @@ def shared_to_obabel_idx(smi_shared, smi_obabel, parameter):
             idx_obabel = r_t_o[idx_rdkit][1]
             #couple = (i, idx_obabel)
             s_t_o.append(idx_obabel)
+            
     elif parameter == 'ligand':
         if smi_L_type(smi_obabel) == 'NHC':
             for i in range(7):
@@ -199,14 +214,44 @@ def shared_to_obabel_idx(smi_shared, smi_obabel, parameter):
         else:
             s_t_o = [i for i in range(8)]
             
+    elif parameter == 'AX':
+        if min([s_t_r[i][0] for i in range(len(s_t_r))]) == 0:
+            for i in range(min(4, len(s_t_r))):
+                idx_rdkit = s_t_r[i][1]
+                idx_obabel = r_t_o[idx_rdkit][1]
+                #couple = (i, idx_obabel)
+                s_t_o.append(idx_obabel)
+                n_f = i
+            if n_f < 3:
+                for j in range(n_f, 4):
+                    idx_rdkit = s_t_r[n_f][1]
+                    idx_obabel = r_t_o[idx_rdkit][1]
+                    s_t_o.append(idx_obabel)
+                    
+        # to do = find H index in obabel smile
+        
+        else:
+            for i in range(min(3, len(s_t_r))):
+                idx_rdkit = s_t_r[i][1]
+                idx_obabel = r_t_o[idx_rdkit][1]
+                #couple = (i, idx_obabel)
+                s_t_o.append(idx_obabel)
+                n_f = i
+            if n_f < 2:
+                for j in range(n_f, 3):
+                    idx_rdkit = s_t_r[n_f][1]
+                    idx_obabel = r_t_o[idx_rdkit][1]
+                    s_t_o.append(idx_obabel)
+                       
     return s_t_o
 
 def shared_to_rdkit_can(smi_shared):
     atmaptidx = [] 
-    m = Chem.MolFromSmiles(smi_shared)
+    m = Chem.MolFromSmiles(smi_shared, Chem.rdmolops.AddHs==True)
+    m = num_AddHs(m)
     for a in m.GetAtoms():
         a.SetProp("foo", str(a.GetAtomMapNum()))
-    nb.remove_at_map(m)
+    remove_at_map(m)
     # get the atoms in the smiles string order
     order = m.GetPropsAsDict(True,True)["_smilesAtomOutputOrder"]
     # print("canonical order:", list(order))
@@ -218,10 +263,13 @@ def shared_to_rdkit_can(smi_shared):
 
 def rdkit_to_obabel_can(smi_obabel):
     atmaptidx = [] 
-    m = Chem.MolFromSmiles(smi_obabel)
+    m = nb.mol_with_atom_index(Chem.MolFromSmiles(smi_obabel))
+    m = Chem.rdmolops.AddHs(m)
+    m = nb.mol_with_atom_index(m)
+    
     for a in m.GetAtoms():
         a.SetProp("foo", str(a.GetIdx()))
-    nb.remove_at_map(m)
+    remove_at_map(m)
     # get the atoms in the smiles string order
     order = m.GetPropsAsDict(True,True)["_smilesAtomOutputOrder"]
     # print("canonical order:", list(order))
@@ -229,6 +277,38 @@ def rdkit_to_obabel_can(smi_obabel):
     for a in m_canonical.GetAtoms():
         atmaptidx.append((a.GetIdx(), int(a.GetProp("foo"))))
     return atmaptidx
+
+def num_AddHs(m):
+    # put AtomMapNum 1000 on element numbered 0
+    for at in m.GetAtoms():
+        if at.GetAtomMapNum() == 0:
+            at.SetAtomMapNum(1000)
+            
+    # Add missing Hs to the molecule
+    m.UpdatePropertyCache(strict=False)
+    m = Chem.rdmolops.AddHs(m, addCoords=True)
+    list_idx = [at.GetAtomMapNum() for at in m.GetAtoms()]
+    list_idx.remove(1000)
+    
+    # number by order the missing H
+    for at in m.GetAtoms():
+        if at.GetAtomMapNum() == 0:
+            nb.reset_atom_map(m, max(list_idx)+1)
+            at.SetAtomMapNum(max(list_idx)+1)
+            list_idx.append(max(list_idx)+1)
+    
+    # set back to 0 the AtomMap of element number 1000
+    for at in m.GetAtoms():
+        if at.GetAtomMapNum() == 1000:
+            nb.reset_atom_map(m, 0)
+            at.SetAtomMapNum(0)  
+            
+    return m
+
+def remove_at_map(mol):
+    for at in mol.GetAtoms():
+        at.SetAtomMapNum(0)
+    return Chem.MolFromSmiles(Chem.MolToSmiles(mol), Chem.rdmolops.AddHs==True)
 
 def smi_L_type(smi):
     m = Chem.MolFromSmiles(smi)
