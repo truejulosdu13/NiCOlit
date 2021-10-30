@@ -143,17 +143,22 @@ class gaussian_log_extractor(object):
     def get_geometry(self) -> None:
         """Extract geometry dataframe from the log."""
         
-
-        # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"
-        geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational constants",
+        rotational = re.findall("Rotational c", self.log) # discro=imante betwenn mono and di atomic molecules
+        if len(rotational) == 0:
+            # regex logic: find parts between "Standard orientation.*X Y Z" and "Leave Link"
+            geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Leave Link",
                                self.log, re.DOTALL)
-
+        else:
+            # regex logic: find parts between "Standard orientation.*X Y Z" and "Rotational constants"
+            geoms = re.findall("Standard orientation:.*?X\s+Y\s+Z\n(.*?)\n\s*Rotational c",
+                               self.log, re.DOTALL)
+       
         # use the last available geometry block
         geom = geoms[-1]
+        
         geom = map(str.strip, geom.splitlines())  # split lines and strip outer spaces
         geom = filter(lambda line: set(line) != {'-'}, geom)  # remove lines that only contain "---"
         geom = map(str.split, geom)  # split each line by space
-
         # convert to np.array for further manipulation (note: arrays have unique dtype, here it's str)
         geom_arr = np.array(list(geom))
         # create a dataframe
