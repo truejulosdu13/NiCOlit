@@ -129,8 +129,8 @@ dict_ligand = {
           "SIPr" : "CC(C)c1cccc(C(C)C)c1N3[C]N(c2c(C(C)C)cccc2C(C)C)CC3",
           "SIMes": "Cc3cc(C)c(N2[C]N(c1c(C)cc(C)cc1C)CC2)c(C)c3",
           "SItBu": "CC(C)(C)N1CCN(C(C)(C)C)[C]1",
-          "CDC"  : "CC(C)N2c1ccccc1N(C)C2CC4N(C)c3ccccc3N4C(C)C",
-          "C1-CDC" : "CN2c1ccccc1N(C)C2CC4N(C(C)(C))c3ccccc3N4C(C)C",
+          "CDC"  : "CC(C)N2c1ccccc1N(C)C2[C]C4N(C)c3ccccc3N4C(C)C",
+          "C1-CDC" : "CN2c1ccccc1N(C)C2[C]C4N(C(C)(C))c3ccccc3N4C(C)C",
           "Me2IPr" : "CC2=C(C)N(c1c(C(C)C)cccc1C(C)C)[C]N2c3c(C(C)C)cccc3C(C)C",
           "CCCCN5CN(c3cccc(N2CN(CCCC)c1ccccc12)n3)c4ccccc45" : "CCCCN5[C]N(c3cccc(N2[C]N(CCCC)c1ccccc12)n3)c4ccccc45",
      #phen/bipy
