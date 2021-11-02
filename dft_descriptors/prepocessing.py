@@ -1,15 +1,19 @@
 from rdkit import Chem
 
+# Maps an additive to its category
+def additives_mapping(add):
+    add = str(add)
+    add = add.replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
+    if Chem.MolFromSmiles(add):
+        return Chem.CanonSmiles(add)
+    else:
+        return 'nan'
+
+# Maps an additive to its category for the entire list   
 def smiles_additifs(liste_additif) :
     base_additif = []
     for i in liste_additif :
-        smiles = str(i).replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
-        try :
-            base_additif.append(Chem.MolToSmiles(Chem.MolFromSmiles(smiles)))
-            if Chem.MolFromSmiles(smiles) is None :
-                print(smiles)
-        except :
-            base_additif.append('nan')
+        base_additif.append(additives_mapping(i))
     return base_additif
 
             

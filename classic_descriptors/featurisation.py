@@ -2,6 +2,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, BRICS, rdChemReactions
 import numpy as np 
 from sklearn.preprocessing import OneHotEncoder
+import math
 
 # Mapping to go from precursor to simplified category (oxidation state of the nickel) 
 Ni0 = ['Ni(cod)2', 'Ni(dcypbz)(CO)2', 'Ni(dcype)(CO)2', 'Ni(dcypt)(CO)2', 'Ni(dppe)(CO)2', 'Ni(L1)(CO)2',
@@ -210,16 +211,24 @@ def precursor_mapping(precursor):
     elif precursor in Ni2:
         return "Ni2"
     else:
-        return precursor
+        return str(precursor)
 
 # Maps an additive to its category
 def additives_mapping(add):
+    add = str(add)
     add = add.replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
     if Chem.MolFromSmiles(add):
         return Chem.CanonSmiles(add)
     else:
         return 'nan'
-       
+
+def ligand_mapping(ligand):
+    try:
+        if math.isnan(ligand):
+            return "None"
+    except:
+        return ligand       
+
 # To rewrite 
 def categorie_add_base(liste_additifs) :
     #extraction de toutes les smiles contenant des especes chargees negativement
@@ -286,10 +295,10 @@ def origin_mapping(information):
 # Takes as input a dataframe, and returns a vector of features, a vector of yields, and information on the mechanism, DOI, and the scope/optimization nature of the reaction 
 def process_dataframe(df):
     
-    solvents = one_hot_encoding(list(df["Solvent"]))
-    ligands = one_hot_encoding(list(df["Ligand effectif"]))     
-    precursors = one_hot_encoding([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]])
-    additives = one_hot_encoding([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]])
+    solvents = one_hot_encoding(np.array(df["Solvent"]).reshape(-1, 1))
+    ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["Ligand effectif"]]).reshape(-1, 1))    
+    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
+    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
     
     X = []
     yields = []

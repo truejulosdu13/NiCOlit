@@ -216,12 +216,12 @@ def precursor_mapping(precursor):
 # Maps an additive to its category
 def additives_mapping(add):
     add = str(add)
+    add = add.replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
     if Chem.MolFromSmiles(add):
-        add = add.replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
-    
         return Chem.CanonSmiles(add)
     else:
         return 'nan'
+    
 
 def ligand_mapping(ligand):
     try:
