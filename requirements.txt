@@ -2,4 +2,6 @@ conda create --name dft_for_sm python=3.9
 conda install jupyter pandas scipy matplotlib pymongo pyyaml fabric xlrd appdirs openpyxl
 conda install -c conda-forge openbabel=3.1.1
 conda install -c conda-forge rdkit=2021.03.5
+conda install scikit-learn
+conda install seaborn
 python -m pip install "pymongo[srv]"
