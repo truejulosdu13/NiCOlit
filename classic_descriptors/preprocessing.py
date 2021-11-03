@@ -1,6 +1,4 @@
 from rdkit import Chem
-from rdkit import RDLogger
-RDLogger.logger().setLevel(RDLogger.CRITICAL)
 
 # returns a dataframe with out the reviews and the doyble step reactions.
 # all the smiles are canonized for ligand, substrate, ax and base_add

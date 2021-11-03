@@ -27,7 +27,8 @@ def generates_descriptors(mol_df, parameter):
     mols_coll = db_connect("molecules")
     log_files_coll = db_connect("log_files")
     
-    data_df = pd.read_csv('../data_csv/Data_test10252021.csv', sep = ',') 
+    data_df = pd.read_csv('../data_csv/Data_test11032021.csv', sep = ',') 
+    data_df = pp.preprocess(data_df)
     
     if parameter == "substrate":
         unik_smi = np.unique(data_df["Reactant Smile (C-O)"].tolist())
@@ -45,7 +46,7 @@ def generates_descriptors(mol_df, parameter):
         unik_lig = [i for i in np.unique(data_df['A-X effectif'])]
         can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
         num_df = pd.read_csv("../data_csv/num_AX.csv")
-        
+    
     # drop molecules that you don't want
     mol_sub_df = drop_non_needed_mols(mol_df, can_smis)
     
@@ -56,16 +57,12 @@ def generates_descriptors(mol_df, parameter):
     mol_sub_df['can_rdkit'] = X
     
 
-    # L = [eval(mol_sub_df._ids.tolist()[i])[0] for i in range(len(mol_sub_df))]
-    # print(L)
-    # get a cursor that iterates over the log files
-    
+    # get a cursor that iterates over the log files    
     cursor = log_files_coll.find({'molecule_id' : {"$in": mol_sub_df.molecule_id.to_list()}}, {'log': 1, 'can': 1})
 
     N = 0
     for l in cursor:
         can, log = l['can'], l['log']
-        print(can)
         fs_name = mol_fs_name(can) 
         smi_obabel, smi_shared = get_smis(can, mol_sub_df, num_df)
         shared_to_obabel = shared_to_obabel_idx(smi_shared, smi_obabel, parameter)   
@@ -135,12 +132,13 @@ def drop_non_needed_mols(mol_df, can_smis):
     can_db = []
     for j, smi in enumerate(mol_df["can"]):
         try:
-            can_smi = Chem.MolToSmiles(Chem.MolFromSmiles(smi)) 
+            can_smi = Chem.CanonSmiles(smi)
             if can_smi not in can_smis:
                 idx_todrop.append(j)
             else:
                 can_db.append((smi, can_smi))
         except:
+            print(smi)
             idx_todrop.append(j)
         
     good_df = mol_df.drop(axis=0, index=idx_todrop)
