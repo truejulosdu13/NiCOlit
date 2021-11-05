@@ -6,14 +6,14 @@ import math
 import pandas as pd
 
 
-def process_dataframe_dft(df):
+def process_dataframe_dft(df, data_path = '../data_csv/'):
     # physico-chemical description of solvents
-    solv = pd.read_csv("../data_csv/solvents.csv", sep = ',', index_col=0)
+    solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solvents = [solv.loc[solvent].to_list() for solvent in df["Solvent"]]
     
     # dft description of ligands 
     # issue : what should we put for nan ? 
-    ligs = pd.read_csv("../data_csv/ligand_dft.csv", sep = ',', index_col=0)
+    ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
     ligs.index.to_list()
     canon_rdkit = []
     for smi in ligs.index.to_list():
@@ -27,14 +27,14 @@ def process_dataframe_dft(df):
     ligands = [ligs.loc[ligand].to_list() for ligand in df["Ligand effectif"]]
     
     # dft description for suubstrates
-    substrate = pd.read_csv("../data_csv/substrate_dft.csv", sep = ',', index_col=0)
+    substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
     substrate["can_rdkit"] = canon_rdkit
     substrate.set_index("can_rdkit", inplace=True)
     substrates = [list(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
     
     # dft description for AX
-    AX = pd.read_csv("../data_csv/AX_dft.csv", sep = ',', index_col=0)
+    AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
     AX["can_rdkit"] = canon_rdkit
     AX.set_index("can_rdkit", inplace=True)
