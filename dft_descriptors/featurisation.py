@@ -3,6 +3,69 @@ from rdkit.Chem import AllChem, Draw, BRICS, rdChemReactions
 import numpy as np 
 from sklearn.preprocessing import OneHotEncoder
 import math
+import pandas as pd
+
+
+def process_dataframe_dft(df):
+    # physico-chemical description of solvents
+    solv = pd.read_csv("../data_csv/solvents.csv", sep = ',', index_col=0)
+    solvents = [solv.loc[solvent].to_list() for solvent in df["Solvent"]]
+    
+    # dft description of ligands 
+    # issue : what should we put for nan ? 
+    ligs = pd.read_csv("../data_csv/ligand_dft.csv", sep = ',', index_col=0)
+    ligs.index.to_list()
+    canon_rdkit = []
+    for smi in ligs.index.to_list():
+        try:
+            canon_rdkit.append(Chem.CanonSmiles(smi))
+        except:
+            canon_rdkit.append(smi)
+            print(smi)
+    ligs["can_rdkit"] = canon_rdkit
+    ligs.set_index("can_rdkit", inplace=True)
+    ligands = [ligs.loc[ligand].to_list() for ligand in df["Ligand effectif"]]
+    
+    # dft description for suubstrates
+    substrate = pd.read_csv("../data_csv/substrate_dft.csv", sep = ',', index_col=0)
+    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
+    substrate["can_rdkit"] = canon_rdkit
+    substrate.set_index("can_rdkit", inplace=True)
+    substrates = [list(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
+    
+    # dft description for AX
+    AX = pd.read_csv("../data_csv/AX_dft.csv", sep = ',', index_col=0)
+    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
+    AX["can_rdkit"] = canon_rdkit
+    AX.set_index("can_rdkit", inplace=True)
+    AXs = [list(AX.loc[ax]) for ax in df["A-X effectif"]]
+    
+    
+    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
+    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
+    
+    X = []
+    yields = []
+    DOIs = []
+    mechanisms = []
+    origins = []
+
+    for i, row in df.iterrows():
+        yield_isolated = process_yield(row["Isolated Yield"])
+        yield_gc = process_yield(row['GC/NMR Yield'])
+        # If both yields are known, we keep the isolated yield
+        if yield_gc:
+            y = yield_gc
+        if yield_isolated:
+            y = yield_isolated
+        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i]))
+        X.append(feature_vector)
+        yields.append(y)
+        DOIs.append(row["DOI"])
+        mechanisms.append(row["Mechanism"])
+        origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
+    
+    return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
 
 # Mapping to go from precursor to simplified category (oxidation state of the nickel) 
 Ni0 = ['Ni(cod)2', 'Ni(dcypbz)(CO)2', 'Ni(dcype)(CO)2', 'Ni(dcypt)(CO)2', 'Ni(dppe)(CO)2', 'Ni(L1)(CO)2',
@@ -291,39 +354,3 @@ def origin_mapping(information):
         return "optimisation"
     else:
         return "scope"
-    
-# Takes as input a dataframe, and returns a vector of features, a vector of yields, and information on the mechanism, DOI, and the scope/optimization nature of the reaction 
-def process_dataframe(df):
-    
-    solvents = one_hot_encoding(np.array(df["Solvent"]).reshape(-1, 1))
-    ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["Ligand effectif"]]).reshape(-1, 1))    
-    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
-    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
-    
-    X = []
-    yields = []
-    DOIs = []
-    mechanisms = []
-    origins = []
-    
-    for i, row in df.iterrows():
-        yield_isolated = process_yield(row["Isolated Yield"])
-        yield_gc = process_yield(row['GC/NMR Yield'])
-        # If both yields are known, we keep the isolated yield
-        if yield_gc:
-            y = yield_gc
-        if yield_isolated:
-            y = yield_isolated
-        rxn_smarts = row["Reactant Smile (C-O)"] + '.' + row["A-X effectif"] + '>>' + row["Product"]
-        reaction_fp = rxnfp(rxn_smarts)
-        feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], additives[i]))
-        X.append(feature_vector)
-        yields.append(y)
-        DOIs.append(row["DOI"])
-        mechanisms.append(row["Mechanism"])
-        origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
-    
-    return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
-
-
-    

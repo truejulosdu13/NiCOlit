@@ -37,7 +37,8 @@ def generates_descriptors(mol_df, parameter):
         
     elif parameter == "ligand":
         data_df = data_df[data_df['Ligand effectif'].notna()]
-        unik_lig = [pp.dict_ligand[i] for i in np.unique(data_df['Ligand effectif'])]
+        data_df = data_df[data_df['Ligand effectif'] != 'NoLigand']
+        unik_lig = np.unique(data_df["Ligand effectif"])
         can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
         num_df = pd.read_csv("../data_csv/num_ligands.csv")
     
@@ -160,7 +161,7 @@ def drop_non_needed_mols(mol_df, can_smis):
 
     idx_todrop = []
     for j, dft in enumerate(good_df["metadata"]):
-        if dft != dft_set:
+        if dft['gaussian_config'] != dft_set['gaussian_config']:
         #if eval(dft)['gaussian_config'] != dft_set['gaussian_config']:
             idx_todrop.append(good_df.iloc[[j]].index[0])
 
