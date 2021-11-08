@@ -322,7 +322,7 @@ def process_dataframe(df):
         yields.append(y)
         DOIs.append(row["DOI"])
         mechanisms.append(row["Mechanism"])
-        origins.append(origin_mapping(row["type of data (optimisation table or scope)"]))
+        origins.append(origin_mapping(row['type of data (Optimisation or scope)']))
     
     return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
     
