@@ -9,11 +9,13 @@ import pandas as pd
 def process_dataframe_dft(df, data_path = '../data_csv/'):
     # physico-chemical description of solvents
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
-    solvents = [solv.loc[solvent].to_list() for solvent in df["Solvent"]]
+    solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
+    solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
     
     # dft description of ligands 
     # issue : what should we put for nan ? 
     ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
+    ligs.drop(columns=descritpors_to_remove_lig, inplace=True)
     ligs.index.to_list()
     canon_rdkit = []
     for smi in ligs.index.to_list():
@@ -24,21 +26,24 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
             print(smi)
     ligs["can_rdkit"] = canon_rdkit
     ligs.set_index("can_rdkit", inplace=True)
-    ligands = [ligs.loc[ligand].to_list() for ligand in df["Ligand effectif"]]
+    ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
     
     # dft description for suubstrates
     substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
+    substrate = substrate[substrate.duplicated(keep='first') != True]
+    substrate.drop(columns=descritpors_to_remove_lig, inplace=True)
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
     substrate["can_rdkit"] = canon_rdkit
     substrate.set_index("can_rdkit", inplace=True)
-    substrates = [list(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
+    substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
     
     # dft description for AX
     AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
+    AX.drop(columns=descritpors_to_remove_ax, inplace=True)
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
     AX["can_rdkit"] = canon_rdkit
     AX.set_index("can_rdkit", inplace=True)
-    AXs = [list(AX.loc[ax]) for ax in df["A-X effectif"]]
+    AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
     
     
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
@@ -66,6 +71,39 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
         origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
     
     return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
+
+
+
+# Dft descriptors that have been removed from the description :
+descritpors_to_remove_ax = ["number_of_atoms", "charge", "multiplicity", "molar_mass", "molar_volume", "E_scf", "zero_point_correction", "E_thermal_correction","H_thermal_correction", "G_thermal_correction", "E_zpe", "E", "H", "G", "stoichiometry", "converged", "ES_root_molar_volume", "ES_root_electronic_spatial_extent",
+                        "X_0", "X_1", "X_2", "X_3",
+                        "Y_0", "Y_1", "Y_2", "Y_3",
+                        "Z_0", "Z_1", "Z_2", "Z_3",
+                        "at_0", "at_1", "at_2", "at_3",
+                        'ES_root_Mulliken_charge_0', 'ES_root_Mulliken_charge_1', 'ES_root_Mulliken_charge_2', 'ES_root_Mulliken_charge_3',
+                         'ES_root_NPA_charge_0', 'ES_root_NPA_charge_1', 'ES_root_NPA_charge_2', 'ES_root_NPA_charge_3',
+                         'ES_root_NPA_core_0', 'ES_root_NPA_core_1', 'ES_root_NPA_core_2', 'ES_root_NPA_core_3', 
+                         'ES_root_NPA_valence_0', 'ES_root_NPA_valence_1', 'ES_root_NPA_valence_2', 'ES_root_NPA_valence_3',
+                         'ES_root_NPA_Rydberg_0', 'ES_root_NPA_Rydberg_1', 'ES_root_NPA_Rydberg_2', 'ES_root_NPA_Rydberg_3',
+                         'ES_root_NPA_total_0', 'ES_root_NPA_total_1', 'ES_root_NPA_total_2', 'ES_root_NPA_total_3',
+                         'ES_transition_0', 'ES_transition_1', 'ES_transition_2', 'ES_transition_3', 'ES_transition_4', 'ES_transition_5', 'ES_transition_6', 'ES_transition_7', 'ES_transition_8', 'ES_transition_9',
+                         'ES_osc_strength_0', 'ES_osc_strength_1', 'ES_osc_strength_2', 'ES_osc_strength_3', 'ES_osc_strength_4', 'ES_osc_strength_5', 'ES_osc_strength_6', 'ES_osc_strength_7', 'ES_osc_strength_8', 'ES_osc_strength_9',
+                         'ES_<S**2>_0', 'ES_<S**2>_1', 'ES_<S**2>_2', 'ES_<S**2>_3', 'ES_<S**2>_4', 'ES_<S**2>_5', 'ES_<S**2>_6', 'ES_<S**2>_7', 'ES_<S**2>_8', 'ES_<S**2>_9']
+
+descritpors_to_remove_lig = ["number_of_atoms", "charge", "multiplicity", "molar_mass", "molar_volume", "E_scf", "zero_point_correction", "E_thermal_correction","H_thermal_correction", "G_thermal_correction", "E_zpe", "E", "H", "G", "stoichiometry", "converged", "ES_root_molar_volume", "ES_root_electronic_spatial_extent",
+    "X_0", "X_1", "X_2", "X_3", "X_4", "X_5", "X_6", "X_7",
+    "Y_0", "Y_1", "Y_2", "Y_3", "Y_4", "Y_5", "Y_6", "Y_7", 
+    "Z_0", "Z_1", "Z_2", "Z_3", "Z_4", "Z_5", "Z_6", "Z_7",
+    "at_0", "at_1", "at_2", "at_3", "at_4", "at_5", "at_6", "at_7",                   'ES_root_Mulliken_charge_0','ES_root_Mulliken_charge_1','ES_root_Mulliken_charge_2','ES_root_Mulliken_charge_3','ES_root_Mulliken_charge_4','ES_root_Mulliken_charge_5','ES_root_Mulliken_charge_6',
+'ES_root_Mulliken_charge_7',
+'ES_root_NPA_charge_0','ES_root_NPA_charge_1', 'ES_root_NPA_charge_2', 'ES_root_NPA_charge_3', 'ES_root_NPA_charge_4', 'ES_root_NPA_charge_5','ES_root_NPA_charge_6','ES_root_NPA_charge_7',
+ 'ES_root_NPA_core_0', 'ES_root_NPA_core_1', 'ES_root_NPA_core_2', 'ES_root_NPA_core_3', 'ES_root_NPA_core_4', 'ES_root_NPA_core_5', 'ES_root_NPA_core_6', 'ES_root_NPA_core_7',
+ 'ES_root_NPA_valence_0', 'ES_root_NPA_valence_1', 'ES_root_NPA_valence_2', 'ES_root_NPA_valence_3', 'ES_root_NPA_valence_4', 'ES_root_NPA_valence_5', 'ES_root_NPA_valence_6', 'ES_root_NPA_valence_7',
+ 'ES_root_NPA_Rydberg_0', 'ES_root_NPA_Rydberg_1', 'ES_root_NPA_Rydberg_2', 'ES_root_NPA_Rydberg_3', 'ES_root_NPA_Rydberg_4', 'ES_root_NPA_Rydberg_5', 'ES_root_NPA_Rydberg_6', 'ES_root_NPA_Rydberg_7',
+ 'ES_root_NPA_total_0', 'ES_root_NPA_total_1', 'ES_root_NPA_total_2', 'ES_root_NPA_total_3', 'ES_root_NPA_total_4', 'ES_root_NPA_total_5', 'ES_root_NPA_total_6', 'ES_root_NPA_total_7',
+ 'ES_transition_0', 'ES_transition_1', 'ES_transition_2', 'ES_transition_3', 'ES_transition_4', 'ES_transition_5', 'ES_transition_6', 'ES_transition_7', 'ES_transition_8', 'ES_transition_9',
+ 'ES_osc_strength_0', 'ES_osc_strength_1', 'ES_osc_strength_2', 'ES_osc_strength_3', 'ES_osc_strength_4', 'ES_osc_strength_5', 'ES_osc_strength_6', 'ES_osc_strength_7', 'ES_osc_strength_8', 'ES_osc_strength_9',
+ 'ES_<S**2>_0', 'ES_<S**2>_1', 'ES_<S**2>_2', 'ES_<S**2>_3', 'ES_<S**2>_4', 'ES_<S**2>_5', 'ES_<S**2>_6', 'ES_<S**2>_7', 'ES_<S**2>_8','ES_<S**2>_9']
 
 # Mapping to go from precursor to simplified category (oxidation state of the nickel) 
 Ni0 = ['Ni(cod)2', 'Ni(dcypbz)(CO)2', 'Ni(dcype)(CO)2', 'Ni(dcypt)(CO)2', 'Ni(dppe)(CO)2', 'Ni(L1)(CO)2',
@@ -354,3 +392,97 @@ def origin_mapping(information):
         return "optimisation"
     else:
         return "scope"
+    
+    
+#featurisation of the dft reactions in order to perform a permutation analysis performance
+
+# fonction to add a suffix coressponding to the descriptor category
+def add_suffix(list_descriptor, suf):
+    list_descriptor_suf = []
+    for descriptor in list_descriptor:
+        list_descriptor_suf.append(str(descriptor + '_' + suf))
+    return list_descriptor_suf
+
+# function to canonicalize additives : removes all duplicates in smi.split('.')
+def canonicalize_additives(smiles):
+    uniques = set(smiles.split('.'))
+    s = ""
+    for add in uniques:
+        s += add
+        s += '.'     
+    return s[:-1]
+
+def one_hot_encoding_with_names(x):
+    enc = OneHotEncoder(sparse=False)
+    enc.fit(x)
+    return enc.transform(x), enc.get_feature_names_out()
+
+def dft_ft(df, data_path = '../data_csv/'):
+    # physico-chemical description of solvents
+    solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
+    solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
+    solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
+    col_solv = solv.columns.to_list()
+    
+    # dft description of ligands 
+    # issue : what should we put for nan ? 
+    ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
+    ligs.drop(columns=descritpors_to_remove_lig, inplace=True)
+    ligs.index.to_list()
+    canon_rdkit = []
+    for smi in ligs.index.to_list():
+        try:
+            canon_rdkit.append(Chem.CanonSmiles(smi))
+        except:
+            canon_rdkit.append(smi)
+            print(smi)
+    ligs["can_rdkit"] = canon_rdkit
+    ligs.set_index("can_rdkit", inplace=True)
+    ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
+    col_lig = add_suffix(ligs.columns.to_list(), 'lig')
+    
+    # dft description for suubstrates
+    substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
+    substrate = substrate[substrate.duplicated(keep='first') != True]
+    substrate.drop(columns=descritpors_to_remove_lig, inplace=True)
+    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
+    substrate["can_rdkit"] = canon_rdkit
+    substrate.set_index("can_rdkit", inplace=True)
+    substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
+    col_sub = add_suffix(substrate.columns.to_list(), 'sub')
+    
+    # dft description for AX
+    AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
+    AX.drop(columns=descritpors_to_remove_ax, inplace=True)
+    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
+    AX["can_rdkit"] = canon_rdkit
+    AX.set_index("can_rdkit", inplace=True)
+    AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
+    col_ax = add_suffix(AX.columns.to_list(), 'ax')
+    
+    
+    ohe_precursors = one_hot_encoding_with_names(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
+    precursors = ohe_precursors[0]
+    col_prec = ohe_precursors[1]
+    ohe_additives = one_hot_encoding_with_names(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
+    additives = ohe_additives[0]
+    col_add = ohe_additives[1]
+    
+    X = []
+
+    for i, row in df.iterrows():
+        yield_isolated = process_yield(row["Isolated Yield"])
+        yield_gc = process_yield(row['GC/NMR Yield'])
+        # If both yields are known, we keep the isolated yield
+        if yield_gc:
+            y = yield_gc
+        if yield_isolated:
+            y = yield_isolated
+        
+        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i], np.array([y])))
+        X.append(feature_vector)
+        
+    columns = np.concatenate((col_solv, col_lig, col_prec, col_add, col_sub, col_ax, np.array(["yield"])))
+    df = pd.DataFrame(data=X, columns=columns)
+    
+    return df
