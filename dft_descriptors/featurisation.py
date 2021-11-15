@@ -2,6 +2,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, BRICS, rdChemReactions
 import numpy as np 
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 import math
 import pandas as pd
 
@@ -45,6 +46,15 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
     AX.set_index("can_rdkit", inplace=True)
     AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
     
+    # temperatures
+    temp = temperatures(df)
+    
+    # equivalents
+    equiv = equivalents(df)
+    
+    # time
+    time = times(df)
+    
     
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
     additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
@@ -63,13 +73,16 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
             y = yield_gc
         if yield_isolated:
             y = yield_isolated
-        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i]))
+        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i], [temp[i]], equiv[i], [time[i]]))
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
         mechanisms.append(row["Mechanism"])
         origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
     
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+  
     return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
 
 
@@ -417,6 +430,41 @@ def one_hot_encoding_with_names(x):
     enc.fit(x)
     return enc.transform(x), enc.get_feature_names_out()
 
+# add temperatures to the featurisation
+def temperatures(df):
+    temp = df["Temperature"].to_list()
+    temp = ['25' if x == 'rt' else x for x in temp]
+    temp = [str(x).replace('°C', '') for x in temp]
+    replacements = {'23-100':'60', '23-65':'44', '60-100':'80', '80-120':'100', '110-130':120}
+    replacer = replacements.get
+    temp = [float(replacer(n, n)) for n in temp]
+    return np.array(temp)
+
+# adds equivalents to the featurisation
+def equivalents(df):
+    df = df[['eq CO','eq A-X', 'eq Ni', 'eq Lig (lig + prec)','eq B (si reducteur pas pris en c0mpte)']]
+    return df.values.astype(float)
+
+# add temperatures to the featurisation
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except:
+        return False
+    
+def times(df):
+    df["Time"] = df["Time"].map(lambda x : x.replace('h', ''))
+    df["Time"] = df["Time"].map(lambda x : float(x) if is_float(x) else x )
+    df["Time"] = df["Time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
+    replacements = {'2-15':'8.5', '6-12':'9', '>12':'24'}
+    replacer = replacements.get
+    time = [float(replacer(n, n)) for n in df["Time"].values]
+    return np.array(time)
+
+
+
+# allmost duplicate function : to be remove
 def dft_ft(df, data_path = '../data_csv/'):
     # physico-chemical description of solvents
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)

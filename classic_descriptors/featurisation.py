@@ -292,6 +292,39 @@ def origin_mapping(information):
     else:
         return "scope"
     
+# add temperatures to the featurisation
+def temperatures(df):
+    temp = df["Temperature"].to_list()
+    temp = ['25' if x == 'rt' else x for x in temp]
+    temp = [str(x).replace('°C', '') for x in temp]
+    replacements = {'23-100':'60', '23-65':'44', '60-100':'80', '80-120':'100', '110-130':120}
+    replacer = replacements.get
+    temp = [float(replacer(n, n)) for n in temp]
+    return np.array(temp)
+
+# adds equivalents to the featurisation
+def equivalents(df):
+    df = df[['eq CO','eq A-X', 'eq Ni', 'eq Lig (lig + prec)','eq B (si reducteur pas pris en c0mpte)']]
+    return df.values.astype(float)
+
+# add times to the featurisation
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except:
+        return False
+    
+def times(df):
+    df["Time"] = df["Time"].map(lambda x : x.replace('h', ''))
+    df["Time"] = df["Time"].map(lambda x : float(x) if is_float(x) else x )
+    df["Time"] = df["Time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
+    replacements = {'2-15':'8.5', '6-12':'9', '>12':'24'}
+    replacer = replacements.get
+    time = [float(replacer(n, n)) for n in df["Time"].values]
+    return np.array(time)
+
+    
 # Takes as input a dataframe, and returns a vector of features, a vector of yields, and information on the mechanism, DOI, and the scope/optimization nature of the reaction 
 def process_dataframe(df):
     
@@ -299,6 +332,10 @@ def process_dataframe(df):
     ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["Ligand effectif"]]).reshape(-1, 1))    
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
     additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
+
+    temp = temperatures(df)
+    equiv = equivalents(df)
+    time = times(df)
     
     X = []
     yields = []
@@ -316,7 +353,8 @@ def process_dataframe(df):
             y = yield_isolated
         rxn_smarts = row["Reactant Smile (C-O)"] + '.' + row["A-X effectif"] + '>>' + row["Product"]
         reaction_fp = rxnfp(rxn_smarts)
-        feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], additives[i]))
+        feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], additives[i], [time[i]], 
+                                        equiv[i], [temp[i]]))
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])

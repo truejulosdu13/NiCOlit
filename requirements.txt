@@ -4,4 +4,6 @@ conda install -c conda-forge openbabel=3.1.1
 conda install -c conda-forge rdkit=2021.03.5
 conda install scikit-learn
 conda install seaborn
+conda install xgboost
+conda install -c mordred-descriptor mordred
 python -m pip install "pymongo[srv]"
