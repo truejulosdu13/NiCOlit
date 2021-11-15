@@ -69,9 +69,9 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
         yield_isolated = process_yield(row["Isolated Yield"])
         yield_gc = process_yield(row['GC/NMR Yield'])
         # If both yields are known, we keep the isolated yield
-        if yield_gc:
+        if yield_gc is not None:
             y = yield_gc
-        if yield_isolated:
+        if yield_isolated is not None:
             y = yield_isolated
         feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i], [temp[i]], equiv[i], [time[i]]))
         X.append(feature_vector)
