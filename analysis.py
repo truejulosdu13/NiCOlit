@@ -152,3 +152,44 @@ def analysis_stratification_influence_raw(X, y, stratification, additonal_strati
 
             
     return stratification_results, additional_stratification_results, local_results, global_results, local_baseline_results, values
+
+def analysis_stratification_influence_substrates(X, y, stratification, metric=mean_absolute_error, predictor=RandomForestRegressor(n_estimators=100),
+                                      test_size=0.2, n_iterations=10):
+    unique_stratification = np.unique(stratification)
+    metric_standalone = []
+    metric_augmented = []
+    metric_baseline_standalone = []
+    metric_baseline_augmented = []
+    sizes = []
+    for strat in unique_stratification:
+        indexes = np.array([i for i in range(len(stratification)) if stratification[i]==strat])
+        indexes_outside = np.array([i for i in range(len(stratification)) if stratification[i]!=strat])
+        metric_augmented_current = []
+        
+        metric_baseline_augmented_current = []
+        
+        sizes.append(len(indexes))
+        for i in range(n_iterations):
+            X_external_test, y_external_test = X[indexes, :], y[indexes]
+            X_outside, y_outside = X[indexes_outside, :], y[indexes_outside]
+            
+            
+            pred = copy.deepcopy(predictor)
+            pred.fit(X_outside, y_outside)
+            y_pred = pred.predict(X_external_test)
+            metric_augmented_current.append(metric(y_external_test, y_pred))
+            
+            if is_classifier(pred):
+                values, counts = np.unique(y_outside, return_counts=True)
+                ind = np.argmax(counts)
+                mean_prediction = np.array([values[ind] for _ in range(len(y_external_test))])
+            else:
+                mean_prediction = np.array([np.mean(y_outside) for _ in range(len(y_external_test))])
+            metric_baseline_augmented_current.append(metric(y_external_test, mean_prediction))
+            
+        metric_augmented.append(metric_augmented_current)
+        metric_baseline_augmented.append(metric_baseline_augmented_current)
+        
+    metric_augmented = np.array(metric_augmented)
+    metric_baseline_augmented = np.array(metric_baseline_augmented)
+    return metric_augmented, metric_baseline_augmented, unique_stratification, sizes

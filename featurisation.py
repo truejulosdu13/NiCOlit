@@ -311,9 +311,9 @@ def process_dataframe(df):
         yield_isolated = process_yield(row["Isolated Yield"])
         yield_gc = process_yield(row['GC/NMR Yield'])
         # If both yields are known, we keep the isolated yield
-        if yield_gc:
+        if yield_gc is not None:
             y = yield_gc
-        if yield_isolated:
+        if yield_isolated is not None:
             y = yield_isolated
         rxn_smarts = row["Reactant Smile (C-O)"] + '.' + row["A-X effectif"] + '>>' + row["Product"]
         reaction_fp = rxnfp(rxn_smarts)
