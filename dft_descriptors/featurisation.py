@@ -7,12 +7,12 @@ import math
 import pandas as pd
 
 
-def process_dataframe_dft(df, data_path = '../data_csv/'):
+def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False):
     # physico-chemical description of solvents
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
     solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
-    
+
     # dft description of ligands 
     # issue : what should we put for nan ? 
     ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
@@ -59,6 +59,9 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
     additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
     
+    if origin is True:
+        Origin = one_hot_encoding(np.array(df["type of data (Optimisation or scope)"]).reshape(-1, 1))
+    
     X = []
     yields = []
     DOIs = []
@@ -73,17 +76,31 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
             y = yield_gc
         if yield_isolated is not None:
             y = yield_isolated
-        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i], [temp[i]], equiv[i], [time[i]]))
+            
+        if origin is True:
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], additives[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+        else:
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], additives[i], [temp[i]], equiv[i], [time[i]]))
+            
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
         mechanisms.append(row["Mechanism"])
         origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
     
+
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
-  
-    return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
+    
+    if dim == True:
+        d_scope = len(substrates[0]) + len(AXs[0])
+        d_optim = len(solvents[0]) + len(ligands[0]) + len(precursors[0]) + len(additives[0]) + 2 + len(equiv[0])
+        d_tot = d_scope + d_optim
+        v_scope = [1 if i < d_scope else 0 for i in range(d_tot)]
+        v_optim = [0 if i < d_scope else 1 for i in range(d_tot)]
+        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins), (v_scope, v_optim)
+    else : 
+        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
 
 
 
@@ -453,13 +470,13 @@ def is_float(value):
     except:
         return False
     
-def times(df):
-    df["Time"] = df["Time"].map(lambda x : x.replace('h', ''))
-    df["Time"] = df["Time"].map(lambda x : float(x) if is_float(x) else x )
-    df["Time"] = df["Time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
-    replacements = {'2-15':'8.5', '6-12':'9', '>12':'24'}
+def times(df_t):
+    df_t["Time"] = df_t["Time"].map(lambda x : x.replace('h', ''))
+    df_t["Time"] = df_t["Time"].map(lambda x : float(x) if is_float(x) else x )
+    df_t["Time"] = df_t["Time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
+    replacements = {'2-15':'8.5', '6-12':'9', '>12':'24', '5-20':'12.5'}
     replacer = replacements.get
-    time = [float(replacer(n, n)) for n in df["Time"].values]
+    time = [float(replacer(n, n)) for n in df_t["Time"].values]
     return np.array(time)
 
 
