@@ -1,3 +1,4 @@
+import numpy as np
 from rdkit import Chem
 from rdkit import RDLogger
 RDLogger.logger().setLevel(RDLogger.CRITICAL)
@@ -5,10 +6,6 @@ RDLogger.logger().setLevel(RDLogger.CRITICAL)
 # returns a dataframe with out the reviews and the doyble step reactions.
 # all the smiles are canonized for ligand, substrate, ax and base_add
 def preprocess(df):
-    # to be remove soon :
-    # df = df.drop(df[df["Ligand effectif"]=='[C]1N(C23CC4CC(CC(C4)C2)C3)C=CN1C12CC3CC(CC(C3)C1)C2'].index)
-    # df = df.reset_index(drop=True)
-    
     # remove lines with nan substrate
     df = df[df["Reactant Smile (C-O)"].isna() == False]
     
@@ -23,7 +20,10 @@ def preprocess(df):
     # remove the double steps reactions 
     df = df[df["2 Steps"] != "Yes"]
     
-    # check smiles validity
+    # find Lewis Acid and Base for eaxh reaction
+    df = find_Lewis_Acid(df)
+    
+    # Check smiles validity
     # Canon CO
     co_can = [Chem.CanonSmiles(smi) for smi in df["Reactant Smile (C-O)"]]
     # Canon AX
@@ -35,23 +35,151 @@ def preprocess(df):
             lig_can.append(Chem.CanonSmiles(dict_ligand[lig]))
         except:
             lig_can.append(dict_ligand[str(lig)])
-    
-    #print(lig_can)
             
     # Canon Base
     add_can = smiles_additifs(df["Base/additif après correction effective"])
+    # Canon Lewis Acid
+    al_can = []
+    for al in [additives_mapping(al) for al in df["Lewis Acid"]]:
+        try: 
+            al_can.append(Chem.CanonSmiles(al))
+        except:
+            al_can.append(al)
             
     # Canon_df
     df["Reactant Smile (C-O)"] = co_can
     df["A-X effectif"] = ax_can
     df["Ligand effectif"] = lig_can
     df["Base/additif après correction effective"] = add_can
+    df["Lewis Acid"] = al_can
     
+    # not featurized molecules 
     df = df[df["Ligand effectif"] != '[C]1N(C23CC4CC(CC(C4)C2)C3)C=CN1C12CC3CC(CC(C3)C1)C2']
     df = df[df["A-X effectif"] != "[Li][Zn]([Li])(C)(C)(C)c1ccc(C(=O)N(C(C)C)C(C)C)cc1"]
     df = df[df["A-X effectif"] != "[Na+].c1ccc([B-](c2ccccc2)(c2ccccc2)c2ccccc2)cc1" ] 
     df = df[df["Reactant Smile (C-O)"] != "COc1ccc(I)cc1" ] 
     df = df.reset_index(drop=True)
+    
+    return df
+
+
+# splitiing additives raw information into Lewis Acids and Bases
+def find_Lewis_Acid(df):
+    AL = [] # first we find the Lewis Acid, if there is one for each reaction
+    for i, row in df.iterrows():
+        base = row["Base_add_covalent_smiles"] # is there a Lewis Acid in the covalent Lewis Acid column ?
+        al = None
+        if isNaN(base): # is there a Lewis Acid in the ionic Lewis Acid column ?
+            base = row["Base/additif après correction effective"]
+            try:
+                if Chem.CanonSmiles(base) in no_lewis_acid:
+                    base = 'NoLewisAcid'
+            except:
+                pass
+        
+        if isNaN(base) or base == 'NoLewisAcid': # in case there are no additives, the stronger Lewis Acid may be the coupling partner
+            meca = row["Mechanism"]
+            # when the is no LA added in the mechanism, the stronger lewis acid is the coupling partner
+            # we assume that only one Nickel center is involved in the mechanism.
+            if meca in ['Murahashi', 'Kumada', 'Negishi', 'Al _coupling', 'Suzuki']:
+                al = row["A-X effectif"]
+                if Chem.CanonSmiles(al) in no_lewis_acid:
+                    al = 'NoLewisAcid'
+            else:
+                al = 'NoLewisAcid'
+            AL.append(al) 
+        else:
+            try:
+                if Chem.CanonSmiles(base) in no_lewis_acid:
+                    AL.append('NoLewisAcid')
+                else:
+                    AL.append(base)
+            except:
+                AL.append(base)
+    
+    # choose good Lewis Acid when more than one candidate are present. 
+    new_AL = []
+    for al in list(AL) :
+        als = al.split('.') # separates Lewis base from Lewis acid
+        if len(als) == 1: # in case there is only one Lewis acid
+            new_AL.append(al)
+        else:
+            if '+' not in al: # when there is no positively charge Lewis Acid : specific rule is applied
+                new_AL.append(dict_non_charge_al[al])
+                
+            else: # when there is a cationic specie we take it as the Lewis Acid.
+                new_als = []
+                for smi in als:
+                    if '+' in smi:
+                        new_als.append(smi)
+                if len(np.unique(new_als)) == 1: # when there are more than one we prioretize the positively charged one.
+                    new_AL.append(new_als[0])
+                else:
+                    # this should not happen
+                    print("You have to make a choice between ", new_als)    
+                    
+    df["Lewis Acid"] = new_AL   
+    return df
+
+
+def find_Lewis_Base(df):
+    Base = []
+    for i, row in df.iterrows():
+        base = row["Base/additif après correction effective"]
+        if isNaN(base): # if there is no base/additives : the base will be the solvent. 
+            try:
+                # if the solvent is not a mix of solvents:
+                base = dict_solvent_to_smiles[row["Solvent"]]
+            except:
+                # in cas of a solvent mix : a choice is made.
+                if row["Solvent"] == 'tAmOMe + Et2O':
+                    base = 'CCOCC'
+                elif row["Solvent"] == '(EtO)2CH2 + Et2O':
+                    base = 'CCOCC'
+                elif row["Solvent"] == 'THF/DMA' or row["Solvent"] == 'THF + DMA':
+                    base = dict_solvants['THF']
+                
+                else:
+                    print(row["Solvent"])
+        Base.append(base)   
+        
+    # choose good Lewis Base when more than one candidate is present. 
+    new_Base = []
+    for base in list(Base) :
+        bases = base.split('.')
+        if len(bases) == 1:
+            new_Base.append(base)
+        else:
+            if '-' not in base:
+                print(base)
+                
+            else: #when there are more than one we prioretize the positively charged one.
+                new_bases = []
+                for smi in bases:
+                    if '-' in smi:
+                        new_bases.append(smi)
+                if len(np.unique(new_bases)) == 1:
+                    new_Base.append(new_bases[0])
+                else:
+                    new_base = new_bases[0]
+                    # needs a ranking between bases.
+                    for smi in new_bases:
+                        if smi == '[F-]':
+                            new_base = smi
+                    new_Base.append(new_base)
+                    #print("You have to make a choice between ", np.unique(new_bases))    
+    
+    df["Lewis Base"] = new_Base
+    
+    # case where df["Lewis Base"] is the same as df["Lewis Acid"]
+    for i, row in df.iterrows():
+        if row["Lewis Acid"] == row["Lewis Base"]:
+            print(row["Lewis Base"])
+    
+    # numeroter les acides et les bases par atomes :
+    # comparer les acides et les bases à nouveau.
+    # quand les bases ne possèdent pas de numerotation propre : mettre le solvant à la place.
+    
     return df
 
 # Maps an additive to its category
@@ -60,6 +188,8 @@ def additives_mapping(add):
     add = add.replace('[Sc+++]', '[Sc+3]').replace('[Ti++++]', '[Ti+4]').replace('[Al+++]', '[Al+3]').replace('[Fe+++]', '[Fe+3]').replace('[HO-]', '[O-]')
     if Chem.MolFromSmiles(add):
         return Chem.CanonSmiles(add)
+    elif add == 'NoLewisAcid':
+        return add
     else:
         return 'nan'
 
@@ -69,6 +199,10 @@ def smiles_additifs(liste_additif) :
     for i in liste_additif :
         base_additif.append(additives_mapping(i))
     return base_additif
+
+# auxiliary function
+def isNaN(num):
+    return num != num
 
             
 dict_solvants = {'(EtO)2CH2': 'CCOCOCC',
@@ -218,3 +352,29 @@ dict_ligand = {'nan': 'NoLigand',
  'COD': 'C1=CCCC=CCC1',
  'acac': 'CC(=O)/C=C(/C)[O-]',
 }
+
+# choose the good Lewis Acid when two are available
+dict_non_charge_al = {"c1cccc(C)c1[Mg]Br.[Li]Cl" : "[Li]Cl",
+                      "c1ccccc1[Mg]Br.Cl[Mg]Cl" : "Cl[Mg]Cl",
+                      "c1ccccc1[Mg]Br.[Li]Cl" : "[Li]Cl",
+                      "c1ccccc1[Mg]Br.[Cs]Cl" : "[Cs]Cl",
+                      "c1ccccc1[Mg]Br.[Sc](OS(=O)(=O)C(F)(F)F)(OS(=O)(=O)C(F)(F)F)OS(=O)(=O)C(F)(F)F" : "[Sc](OS(=O)(=O)C(F)(F)F)(OS(=O)(=O)C(F)(F)F)OS(=O)(=O)C(F)(F)F",
+                      "c1ccccc1[Mg]Br.[Ti](OC(C)C)(OC(C)C)OC(C)C" : "[Ti](OC(C)C)(OC(C)C)(OC(C)C)OC(C)C",
+                      "c1ccccc1[Mg]Br.Cl[Al](Cl)Cl" : "Cl[Al](Cl)Cl",
+                      "F[Cu]F.F[Sr]F" : "F[Sr]F",
+                      "F[Cu]F.[Al](C)(C)C" : '[Al](C)(C)C',
+                      "F[Cu]F.[Cs]F" : '[Cs]F',
+                      "Br[Cu]Br.[Cs]F" : '[Cs]F',
+                      'Cl[Cu]Cl.[Cs]F' : '[Cs]F',
+                      "[Cu]I.[Cs]F" : '[Cs]F',
+                      'CC(=O)O[Cu]OC(=O)C.[Cs]F' : '[Cs]F'
+                     }
+
+no_lewis_acid = ['Cc1ccc(Br)cc1',
+                'Oc1ccccc1',
+                'CCN(CC)CC',
+                'CC(C)(C)C(=O)O',
+                'O',
+                'C1CCC2=NCCCN2CC1',
+                'C1=CCCC=CCC1',
+                'NoLewisAcid']

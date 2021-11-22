@@ -46,6 +46,19 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
     AX.set_index("can_rdkit", inplace=True)
     AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
     
+    # dft for Lewis Acid
+    AL = pd.read_csv(data_path + "AL_dft.csv", sep = ',', index_col=0)
+    AL.drop(columns=descritpors_to_remove_al, inplace=True)
+    canon_rdkit = []
+    for smi in AL.index.to_list():
+        try:
+            canon_rdkit.append(Chem.CanonSmiles(smi))
+        except:
+            canon_rdkit.append(smi)
+    AL["can_rdkit"] = canon_rdkit
+    AL.set_index("can_rdkit", inplace=True)
+    ALs = [np.array(AL.loc[al]) for al in df["Lewis Acid"]]
+    
     # temperatures
     temp = temperatures(df)
     
@@ -67,7 +80,7 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
     DOIs = []
     mechanisms = []
     origins = []
-
+    
     for i, row in df.iterrows():
         yield_isolated = process_yield(row["Isolated Yield"])
         yield_gc = process_yield(row['GC/NMR Yield'])
@@ -78,9 +91,9 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
             y = yield_isolated
             
         if origin is True:
-            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], additives[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
         else:
-            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], additives[i], [temp[i]], equiv[i], [time[i]]))
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
             
         X.append(feature_vector)
         yields.append(y)
@@ -105,6 +118,8 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
 
 
 # Dft descriptors that have been removed from the description :
+descritpors_to_remove_al = ["converged", "stoichiometry", "ES_root_molar_volume", "X_0", "Y_0", "Z_0", "at_0", "ES_transition_7", "ES_transition_8", "ES_transition_9", 'ES_osc_strength_7', 'ES_osc_strength_8', 'ES_osc_strength_9', 'ES_<S**2>_7', 'ES_<S**2>_8', 'ES_<S**2>_9']
+
 descritpors_to_remove_ax = ["number_of_atoms", "charge", "multiplicity", "molar_mass", "molar_volume", "E_scf", "zero_point_correction", "E_thermal_correction","H_thermal_correction", "G_thermal_correction", "E_zpe", "E", "H", "G", "stoichiometry", "converged", "ES_root_molar_volume", "ES_root_electronic_spatial_extent",
                         "X_0", "X_1", "X_2", "X_3",
                         "Y_0", "Y_1", "Y_2", "Y_3",

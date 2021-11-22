@@ -27,7 +27,7 @@ def generates_descriptors(mol_df, parameter):
     mols_coll = db_connect("molecules")
     log_files_coll = db_connect("log_files")
     
-    data_df = pd.read_csv('../data_csv/Data_test11032021.csv', sep = ',') 
+    data_df = pd.read_csv('../data_csv/Data_test11222021.csv', sep = ',') 
     data_df = pp.preprocess(data_df)
     
     if parameter == "substrate":
@@ -47,6 +47,12 @@ def generates_descriptors(mol_df, parameter):
         unik_lig = [i for i in np.unique(data_df['A-X effectif'])]
         can_smis = np.unique([Chem.CanonSmiles(smi) for smi in unik_lig])
         num_df = pd.read_csv("../data_csv/num_AX.csv")
+        
+    elif parameter == "LewisAcid":
+        data_df = data_df[data_df['Lewis Acid'].notna()]
+        can_smis = [i for i in np.unique(data_df['Lewis Acid'])]
+        num_df = pd.read_csv("../data_csv/num_AL.csv")
+        
     
     # drop molecules that you don't want
     mol_sub_df = drop_non_needed_mols(mol_df, can_smis)
@@ -101,6 +107,8 @@ def select_at_desc(shared_to_obabel, atom_descriptors, parameter):
         n = 8
     elif parameter == 'AX':
         n = 4
+    elif parameter == 'LewisAcid':
+        n = 1
     select_at_descriptors = dict()
     for key in atom_descriptors.keys():
         key_d = atom_descriptors[key]
@@ -122,6 +130,8 @@ def get_labels(shared_to_obabel, labels, parameter):
         n = 8
     elif parameter == 'AX':
         n = 4
+    elif parameter == 'LewisAcid':
+        n = 1
     ret_labels = dict()
     reduced_labels = [labels[shared_to_obabel[i]] for i in range(n)]
     for i in range(len(reduced_labels)):
@@ -186,6 +196,11 @@ def shared_to_obabel_idx(smi_shared, smi_obabel, parameter):
             idx_obabel = r_t_o[idx_rdkit][1]
             #couple = (i, idx_obabel)
             s_t_o.append(idx_obabel)
+            
+    elif parameter == 'LewisAcid':
+        idx_rdkit = s_t_r[0][1]
+        idx_obabel = r_t_o[idx_rdkit][1]
+        s_t_o.append(idx_obabel)
             
     elif parameter == 'ligand':
         if smi_L_type(smi_obabel) == 'NHC':
