@@ -7,7 +7,7 @@ import math
 import pandas as pd
 import copy
 
-def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False):
+def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False, AX_sub_only=False):
     df = copy.copy(df)
     # physico-chemical description of solvents
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
@@ -94,9 +94,12 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
             y = yield_isolated
             
         if origin is True:
-            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+                feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
         else:
-            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
+            if AX_sub_only==True:
+                feature_vector = np.concatenate((substrates[i], AXs[i]))  
+            else:
+                feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
             
         X.append(feature_vector)
         yields.append(y)
