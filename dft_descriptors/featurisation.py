@@ -113,7 +113,7 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
     
     if dim == True:
         d_scope = len(substrates[0]) + len(AXs[0])
-        d_optim = len(solvents[0]) + len(ligands[0]) + len(precursors[0]) + len(additives[0]) + 2 + len(equiv[0])
+        d_optim = len(solvents[0]) + len(ligands[0]) + len(precursors[0]) + len(ALs[0]) + 2 + len(equiv[0])
         d_tot = d_scope + d_optim
         v_scope = [1 if i < d_scope else 0 for i in range(d_tot)]
         v_optim = [0 if i < d_scope else 1 for i in range(d_tot)]
