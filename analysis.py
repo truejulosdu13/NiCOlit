@@ -211,9 +211,9 @@ def analysis_stratification_influence_substrates_raw(X, y, stratification, addit
             
             values.extend(list(y_external_test))
             if is_classifier(pred):
-                values, counts = np.unique(y_outside, return_counts=True)
+                val, counts = np.unique(y_outside, return_counts=True)
                 ind = np.argmax(counts)
-                mean_prediction = [values[ind] for _ in range(len(y_external_test))]
+                mean_prediction = [val[ind] for _ in range(len(y_external_test))]
             else:
                 mean_prediction = [np.mean(y_outside) for _ in range(len(y_external_test))]
                 
@@ -223,7 +223,10 @@ def analysis_stratification_influence_substrates_raw(X, y, stratification, addit
             
             pred = copy.deepcopy(predictor)
             pred.fit(X_outside, y_outside)
-            y_pred = pred.predict(X_external_test)
+            if is_classifier(pred):
+                y_pred = pred.predict_proba(X_external_test)[:, 1]
+            else:
+                y_pred = pred.predict(X_external_test)
             global_results.extend(list(y_pred))
 
             

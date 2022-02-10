@@ -6,10 +6,19 @@ import math
 import pandas as pd
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 def process_dataframe_dft(df, data_path = '../data_csv/'):
 =======
 def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False):
+=======
+def rxnfp(rxn_smarts, radius=2):
+    rxn = rdChemReactions.ReactionFromSmarts(rxn_smarts)
+    rxnfp = list(rdChemReactions.CreateDifferenceFingerprintForReaction(rxn))
+    return rxnfp
+
+def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False, hybrid=False):
+>>>>>>> b1726cb... push all useful code
     df = copy.copy(df)
 >>>>>>> parent of b1726cb... push all useful code
     # physico-chemical description of solvents
@@ -68,11 +77,23 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
 =======
             
         if origin is True:
-            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]*20))
         else:
             feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
+<<<<<<< HEAD
             
 >>>>>>> parent of b1726cb... push all useful code
+=======
+    
+        if hybrid:
+            rxn_smarts = row["Reactant Smile (C-O)"] + '.' + row["A-X effectif"] + '>>' + row["Product"]
+            reaction_fp = rxnfp(rxn_smarts)
+            if origin is True:
+                feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+            else:
+                feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
+
+>>>>>>> b1726cb... push all useful code
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
