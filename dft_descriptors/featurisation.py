@@ -5,8 +5,13 @@ from sklearn.preprocessing import OneHotEncoder
 import math
 import pandas as pd
 
+<<<<<<< HEAD
 
 def process_dataframe_dft(df, data_path = '../data_csv/'):
+=======
+def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False):
+    df = copy.copy(df)
+>>>>>>> parent of b1726cb... push all useful code
     # physico-chemical description of solvents
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solvents = [solv.loc[solvent].to_list() for solvent in df["Solvent"]]
@@ -58,7 +63,16 @@ def process_dataframe_dft(df, data_path = '../data_csv/'):
             y = yield_gc
         if yield_isolated:
             y = yield_isolated
+<<<<<<< HEAD
         feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i]))
+=======
+            
+        if origin is True:
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
+        else:
+            feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
+            
+>>>>>>> parent of b1726cb... push all useful code
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
