@@ -103,9 +103,7 @@ def analysis_stratification_influence(X, y, stratification, metric=mean_absolute
     metric_augmented = np.array(metric_augmented)
     metric_baseline_standalone = np.array(metric_baseline_standalone)
     metric_baseline_augmented = np.array(metric_baseline_augmented)
-<<<<<<< HEAD
-    return metric_standalone, metric_augmented, metric_baseline_standalone, metric_baseline_augmented, unique_stratification, sizes
-=======
+
     return metric_standalone, metric_augmented, metric_baseline_standalone, metric_baseline_augmented, unique_stratification, sizes
 
 
@@ -231,4 +229,44 @@ def analysis_stratification_influence_substrates_raw(X, y, stratification, addit
 
             
     return stratification_results, additional_stratification_results, global_results, global_baseline_results, values
->>>>>>> parent of b1726cb... push all useful code
+
+
+def get_raw_results(X, y, stratification, additional_stratification, predictor=RandomForestRegressor(n_estimators=100),
+                test_size=0.2, n_iterations=1):
+    values = []
+    baseline_values = []                                                                                                    
+    model_values = []
+    stratification_values = []
+    additional_stratification_values = []
+     
+    # Getting the dummy baseline
+    stratified_results = {} 
+    for strat in np.unique(stratification):
+        indexes = np.array([i for i in range(len(stratification)) if stratification[i]==strat])     
+        if is_classifier(predictor):
+            values, counts = np.unique(y[indexes], return_counts=True)
+            ind = np.argmax(counts)
+            mean_prediction = np.array(values[ind])
+        else:
+            mean_prediction = np.mean(y[indexes])                                                                               #mean_prediction = np.mean(y[indexes])
+        stratified_results[strat] = mean_prediction
+        
+        for i in range(n_iterations):
+            X_training, X_external_test, y_training, y_external_test, strat_training, strat_external_test, _, additional_strat_external_test = train_test_split(X, y, stratification, additional_stratification, test_size=test_size, random_state=i)
+
+            pred = copy.deepcopy(predictor)
+            pred.fit(X_training, y_training)
+            y_pred = pred.predict(X_external_test)
+
+            dummy_predictions = []
+            for s in strat_external_test:
+                dummy_predictions.append(stratified_results[s])
+
+            values.extend(y_external_test)
+            baseline_values.extend(dummy_predictions)
+            model_values.extend(y_pred)
+            stratification_values.extend(strat_external_test)
+            additional_stratification_values.extend(additional_strat_external_test)
+
+    return values, baseline_values, model_values, stratification_values, additional_stratification_values
+            
