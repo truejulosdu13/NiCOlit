@@ -200,6 +200,7 @@ Ni2 = ['Ni(acac)2', 'NiBr2', 'NiBr2(glyme)', 'NiBr2(diglyme)', 'NiBr2(IPr)2', 'N
 # TODO: clean 
 dict_additifs = {
     # Li
+    
     'C[Li]',
     '[Li+].[Li+].[O-]C([O-])[O-]',
     '[Li+].[O-]C(C)(C)C',
@@ -403,42 +404,6 @@ def ligand_mapping(ligand):
     except:
         return ligand       
 
-# To rewrite 
-def categorie_add_base(liste_additifs) :
-    #extraction de toutes les smiles contenant des especes chargees negativement
-    Liste_base = []
-    dict_additifs_corr = [additives_mapping(smiles) for smiles in dict_additifs]
-    
-    for add in dict_additifs_corr:
-        if add != 'nan':
-            add = Chem.MolToSmiles(Chem.MolFromSmiles(add))
-            if add not in Liste_base:
-                if '-' in add:
-                    Liste_base.append(add)
-    # creation d'une liste des especes chargees negativement rencontrées
-    Liste_base_unique = []
-    for add in Liste_base:
-        unique_add = add.split('.')
-        for uni_add in unique_add:
-            if uni_add not in Liste_base_unique:
-                if '-' in uni_add:
-                    Liste_base_unique.append(uni_add)
-    # categorisation des additifs
-    cat_add_base = []
-    additives = [additives_mapping(smiles) for smiles in liste_additifs]
-    for add in additives:
-        if str(add) == 'nan':
-            cat_add_base.append(None)
-        else:
-            add = Chem.MolToSmiles(Chem.MolFromSmiles(add))
-            for i in Liste_base_unique:
-                if i in add.split('.'):
-                    cat = i
-                    break
-                else:
-                    cat = None
-            cat_add_base.append(cat)
-    return cat_add_base
     
 # takes a yield (with potential information as a string e.g. "not detected") and returns a float (e.g. 0)
 # this cleaning will have to take place in a separate part of the code 
