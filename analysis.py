@@ -81,7 +81,7 @@ def analysis_train_set_size(X, y, stratification, metric=mean_absolute_error, pr
 def random_split(X, y, stratification, additional_stratification, predictor=RandomForestRegressor(n_estimators=100),
                 test_size=0.2, n_iterations=1):
     
-     """Gathers the prediction of a regression model on various random splits. Includes a baseline based on a given stratification, and 
+    """Gathers the prediction of a regression model on various random splits. Includes a baseline based on a given stratification, and 
      keeps track of an additional stratification parameter (e.g. scope/optimisation origin of the reaction).
             Parameters:
                     X (np array): features of the dataset, of shape (n_samples, n_features) 
@@ -98,6 +98,7 @@ def random_split(X, y, stratification, additional_stratification, predictor=Rand
                     stratification_values (np array): stratification_values
                     additional_stratification_values (np array): additional_stratification_values
     """
+    
     values = []
     baseline_values = []
     model_values = [] 

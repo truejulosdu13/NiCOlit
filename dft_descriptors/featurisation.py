@@ -55,9 +55,9 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     # 3.
     substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
     substrate.drop(columns=descritpors_to_remove_lig, inplace=True)
-    #canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
-    #substrate["can_rdkit"] = canon_rdkit
-    #substrate.set_index("can_rdkit", inplace=True)
+    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
+    substrate["can_rdkit"] = canon_rdkit
+    substrate.set_index("can_rdkit", inplace=True)
     substrate = substrate[substrate.duplicated(keep='first') != True]
     substrate = substrate[~substrate.index.duplicated(keep='first')]
     substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
