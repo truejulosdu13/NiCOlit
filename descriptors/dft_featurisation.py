@@ -53,7 +53,6 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
             canon_rdkit.append(Chem.CanonSmiles(smi))
         except:
             canon_rdkit.append(smi)
-            print(smi)
     ligs["can_rdkit"] = canon_rdkit
     ligs.set_index("can_rdkit", inplace=True)
     ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
