@@ -251,22 +251,22 @@ def get_raw_results(X, y, stratification, additional_stratification, predictor=R
             mean_prediction = np.mean(y[indexes])                                                                               #mean_prediction = np.mean(y[indexes])
         stratified_results[strat] = mean_prediction
         
-        for i in range(n_iterations):
-            X_training, X_external_test, y_training, y_external_test, strat_training, strat_external_test, _, additional_strat_external_test = train_test_split(X, y, stratification, additional_stratification, test_size=test_size, random_state=i)
+    for i in range(n_iterations):
+        X_training, X_external_test, y_training, y_external_test, strat_training, strat_external_test, _, additional_strat_external_test = train_test_split(X, y, stratification, additional_stratification, test_size=test_size, random_state=i)
 
-            pred = copy.deepcopy(predictor)
-            pred.fit(X_training, y_training)
-            y_pred = pred.predict(X_external_test)
+        pred = copy.deepcopy(predictor)
+        pred.fit(X_training, y_training)
+        y_pred = pred.predict(X_external_test)
 
-            dummy_predictions = []
-            for s in strat_external_test:
-                dummy_predictions.append(stratified_results[s])
+        dummy_predictions = []
+        for s in strat_external_test:
+            dummy_predictions.append(stratified_results[s])
 
-            values.extend(y_external_test)
-            baseline_values.extend(dummy_predictions)
-            model_values.extend(y_pred)
-            stratification_values.extend(strat_external_test)
-            additional_stratification_values.extend(additional_strat_external_test)
+        values.extend(y_external_test)
+        baseline_values.extend(dummy_predictions)
+        model_values.extend(y_pred)
+        stratification_values.extend(strat_external_test)
+        additional_stratification_values.extend(additional_strat_external_test)
 
     return values, baseline_values, model_values, stratification_values, additional_stratification_values
             
