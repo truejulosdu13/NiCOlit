@@ -16,14 +16,18 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     3. DFT featurization of Substrates
     
             Parameters:
-                    df (dataframe): dataframe obtain from the NiCOLit csv file  
+                    df     (dataframe): dataframe obtain from the NiCOLit csv file  
+                    data_path    (str):
+                    origin      (bool):
+                    dim         (bool):
+                    AX_sub_only (bool):
             Returns:
-                    np.array(X)
-                    np.array(yields)
-                    np.array(DOIs)
-                    np.array(mechanisms)
-                    np.array(origins)
-                    (v_scope, v_optim)
+                    X          (np.array):
+                    yields     (np.array): 
+                    DOIs       (np.array):
+                    mechanisms (np.array):
+                    origins    (np.array):
+                    (v_scope, v_optim) (np.array, np.array):
     """
     
     df = copy.copy(df)

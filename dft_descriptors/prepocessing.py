@@ -13,6 +13,7 @@ def preprocess(df):
     ### 5.Potential Lewis Acid reagent in the reaction are identified and a Lewis Acid category is set up.
     ### 6.All SMILES chain are written as RDKit canonical SMILES.
     ### 7.Unfeaturized molecules are removed.
+    ### 8.Remove with less than 20 datapoints after previous preprocessing stages
     
             Parameters:
                     df (dataframe): dataframe obtain from the NiCOLit csv file
@@ -70,6 +71,16 @@ def preprocess(df):
     for al in Lewis_Acids_to_drop:
         df = df[df["Lewis Acid"] != al]
     
+    df = df.reset_index(drop=True)
+    
+    # 8.
+    vc = df.DOI.value_counts()
+    doi_above_20 = np.array(vc[vc > 20].index)
+    indexes = []
+    for i, row in df.iterrows():
+        if row["DOI"] not in doi_above_20:
+            indexes.append(i)
+    df = df.drop(indexes)
     df = df.reset_index(drop=True)
 
     return df
