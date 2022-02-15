@@ -8,26 +8,32 @@ import pandas as pd
 import copy
 
 def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False, AX_sub_only=False):
-    """ Featurize the preprocessed NiCOLit dataset with DFT and physico-chemical descriptors already computed and stored as csv files.
+    """ Featurize the preprocessed NiCOLit dataset with DFT and physico-chemical descriptors already computed and stored as csv files and return additionnal data as yields, DOIs, coupling partner class and scope-optimization origin of the reaction :
     1. Physico-chemical featurization of solvents
     2. DFT featurization of Ligands
     3. DFT featurization of Substrates
-    3. DFT featurization of Substrates
-    3. DFT featurization of Substrates
+    4. DFT featurization of Coupling Partner
+    5. DFT featurization of Lewis Acids
+    6. Concatenation of Time, Temperature and Molar Ratios
+    7. One-Hot encoding of precursors
+    8. One-Hot encoding of data origin (scope-optimization)
+    9. Yield selection and concatenation of all informations.
+    10. Standard scaling of the reaction descriptors
+    11. Definition of a scope and an optimization subspace
     
             Parameters:
                     df     (dataframe): dataframe obtain from the NiCOLit csv file  
-                    data_path    (str):
-                    origin      (bool):
-                    dim         (bool):
-                    AX_sub_only (bool):
+                    data_path    (str): name of the folder with featurization informations
+                    origin      (bool): specify if the scope/optimization origin of the reaction is encoded or not. (8.)
+                    dim         (bool): defines vectors for projection of the data on scope and optimization subspaces (9.)
+                    AX_sub_only (bool): reduces the featurization to substrate and coupling partners only.
             Returns:
-                    X          (np.array):
-                    yields     (np.array): 
-                    DOIs       (np.array):
-                    mechanisms (np.array):
-                    origins    (np.array):
-                    (v_scope, v_optim) (np.array, np.array):
+                    X          (np.array): DFT Featurization of the reaction
+                    yields     (np.array): yield of the reactions
+                    DOIs       (np.array): DOI of the reactions
+                    mechanisms (np.array): coupling partner class of the reactions
+                    origins    (np.array): scope/optimization origin of the reactions
+                    (v_scope, v_optim) (np.array, np.array): vectors for projection of the data on scope and optimization subspaces
     """
     
     df = copy.copy(df)
@@ -62,7 +68,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     substrate = substrate[~substrate.index.duplicated(keep='first')]
     substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
     
-    # dft description for AX
+    # 4.
     AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
     AX.drop(columns=descritpors_to_remove_ax, inplace=True)
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
@@ -70,7 +76,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     AX.set_index("can_rdkit", inplace=True)
     AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
     
-    # dft for Lewis Acid
+    # 5.
     AL = pd.read_csv(data_path + "AL_dft.csv", sep = ',', index_col=0)
     AL.drop(columns=descritpors_to_remove_al, inplace=True)
     canon_rdkit = []
@@ -83,28 +89,21 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     AL.set_index("can_rdkit", inplace=True)
     ALs = [np.array(AL.loc[al]) for al in df["Lewis Acid"]]
     
-    # temperatures
-    temp = temperatures(df)
-    
-    # equivalents
-    equiv = equivalents(df)
-    
-    # time
+    # 6.
     time = times(df)
-    
-    
+    temp = temperatures(df)
+    equiv = equivalents(df)
+
+    # 7.
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
     additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
     
+    # 8.
     if origin is True:
         Origin = one_hot_encoding(np.array(df["type of data (Optimisation or scope)"]).reshape(-1, 1))
-    
-    X = []
-    yields = []
-    DOIs = []
-    mechanisms = []
-    origins = []
-    
+        
+    # 9. 
+    X, yields, DOIs, mechanisms, origins = [], [], [], [], []
     for i, row in df.iterrows():
         yield_isolated = process_yield(row["Isolated Yield"])
         yield_gc = process_yield(row['GC/NMR Yield'])
@@ -112,8 +111,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
         if yield_gc is not None:
             y = yield_gc
         if yield_isolated is not None:
-            y = yield_isolated
-            
+            y = yield_isolated  
         if origin is True:
                 feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]], Origin[i]))
         else:
@@ -126,19 +124,22 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
         yields.append(y)
         DOIs.append(row["DOI"])
         mechanisms.append(row["Mechanism"])
-        origins.append(origin_mapping(row["type of data (Optimisation or scope)"]))
+        origins.append(row["type of data (Optimisation or scope)"])
     
-
+    # 10. 
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
     
+    # 11.
     if dim == True:
         d_scope = len(substrates[0]) + len(AXs[0])
         d_optim = len(solvents[0]) + len(ligands[0]) + len(precursors[0]) + len(ALs[0]) + 2 + len(equiv[0])
         d_tot = d_scope + d_optim
         v_scope = [1 if i < d_scope else 0 for i in range(d_tot)]
         v_optim = [0 if i < d_scope else 1 for i in range(d_tot)]
+        
         return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins), (v_scope, v_optim)
+    
     else : 
         return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
 
@@ -453,20 +454,7 @@ def process_yield(y):
         else:
             return None
     except:
-        return None 
-    
-# Maps information on whether the reaction was from a scope/optimization table to a binary category optimization./scope
-optimisation = ["Optimisation table", "optimisation - changement de ligand", "optimization", "Optimisation Table", "optimisation", *
-                "optimisation table" ,"Optimisation", "Table d'optimisation", "Table Optimisation"]
-
-def origin_mapping(information):
-    if information in optimisation:
-        return "optimisation"
-    else:
-        return "scope"
-    
-    
-#featurisation of the dft reactions in order to perform a permutation analysis performance
+        return None
 
 # fonction to add a suffix coressponding to the descriptor category
 def add_suffix(list_descriptor, suf):
@@ -504,7 +492,6 @@ def equivalents(df):
     df = df[['eq CO','eq A-X', 'eq Ni', 'eq Lig (lig + prec)','eq B (si reducteur pas pris en c0mpte)']]
     return df.values.astype(float)
 
-# add temperatures to the featurisation
 def is_float(value):
     try:
         float(value)
@@ -520,76 +507,3 @@ def times(df_t):
     replacer = replacements.get
     time = [float(replacer(n, n)) for n in df_t["Time"].values]
     return np.array(time)
-
-
-
-# allmost duplicate function : to be remove
-def dft_ft(df, data_path = '../data_csv/'):
-    # physico-chemical description of solvents
-    solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
-    solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
-    solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
-    col_solv = solv.columns.to_list()
-    
-    # dft description of ligands 
-    # issue : what should we put for nan ? 
-    ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
-    ligs.drop(columns=descritpors_to_remove_lig, inplace=True)
-    ligs.index.to_list()
-    canon_rdkit = []
-    for smi in ligs.index.to_list():
-        try:
-            canon_rdkit.append(Chem.CanonSmiles(smi))
-        except:
-            canon_rdkit.append(smi)
-            print(smi)
-    ligs["can_rdkit"] = canon_rdkit
-    ligs.set_index("can_rdkit", inplace=True)
-    ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
-    col_lig = add_suffix(ligs.columns.to_list(), 'lig')
-    
-    # dft description for suubstrates
-    substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
-    substrate = substrate[substrate.duplicated(keep='first') != True]
-    substrate.drop(columns=descritpors_to_remove_lig, inplace=True)
-    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
-    substrate["can_rdkit"] = canon_rdkit
-    substrate.set_index("can_rdkit", inplace=True)
-    substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
-    col_sub = add_suffix(substrate.columns.to_list(), 'sub')
-    
-    # dft description for AX
-    AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
-    AX.drop(columns=descritpors_to_remove_ax, inplace=True)
-    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
-    AX["can_rdkit"] = canon_rdkit
-    AX.set_index("can_rdkit", inplace=True)
-    AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
-    col_ax = add_suffix(AX.columns.to_list(), 'ax')
-    
-    
-    ohe_precursors = one_hot_encoding_with_names(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
-    precursors = ohe_precursors[0]
-    col_prec = ohe_precursors[1]
-    ohe_additives = one_hot_encoding_with_names(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
-    additives = ohe_additives[0]
-    col_add = ohe_additives[1]
-    
-    X = []
-
-    for i, row in df.iterrows():
-        yield_isolated = process_yield(row["Isolated Yield"])
-        yield_gc = process_yield(row['GC/NMR Yield'])
-        # If both yields are known, we keep the isolated yield
-        if yield_gc:
-            y = yield_gc
-        if yield_isolated:
-            y = yield_isolated
-        
-        feature_vector = np.concatenate((solvents[i], ligands[i], precursors[i], additives[i], substrates[i], AXs[i], np.array([y])))
-        X.append(feature_vector)
-        
-    columns = np.concatenate((col_solv, col_lig, col_prec, col_add, col_sub, col_ax, np.array(["yield"])))
-    df = pd.DataFrame(data=X, columns=columns)
-    
-    return df
