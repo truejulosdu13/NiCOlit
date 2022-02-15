@@ -7,14 +7,32 @@ import math
 import pandas as pd
 import copy
 
-def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=False, AX_sub_only=False):
+def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False, AX_sub_only=False):
+    """ Featurize the preprocessed NiCOLit dataset with DFT and physico-chemical descriptors already computed and stored as csv files.
+    1. Physico-chemical featurization of solvents
+    2. DFT featurization of Ligands
+    3. DFT featurization of Substrates
+    3. DFT featurization of Substrates
+    3. DFT featurization of Substrates
+    
+            Parameters:
+                    df (dataframe): dataframe obtain from the NiCOLit csv file  
+            Returns:
+                    np.array(X)
+                    np.array(yields)
+                    np.array(DOIs)
+                    np.array(mechanisms)
+                    np.array(origins)
+                    (v_scope, v_optim)
+    """
+    
     df = copy.copy(df)
-    # physico-chemical description of solvents
+    # 1.
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
     solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
 
-    # dft description of ligands 
+    # 2.
     # issue : what should we put for nan ? 
     ligs = pd.read_csv(data_path + "ligand_dft.csv", sep = ',', index_col=0)
     ligs.drop(columns=descritpors_to_remove_lig, inplace=True)
@@ -30,13 +48,12 @@ def process_dataframe_dft(df, data_path = '../data_csv/', origin=False, dim=Fals
     ligs.set_index("can_rdkit", inplace=True)
     ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
     
-    # dft description for suubstrates
+    # 3.
     substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
-    #substrate = substrate[substrate.duplicated(keep='first') != True]
     substrate.drop(columns=descritpors_to_remove_lig, inplace=True)
-    canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
-    substrate["can_rdkit"] = canon_rdkit
-    substrate.set_index("can_rdkit", inplace=True)
+    #canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in substrate.index.to_list() ]
+    #substrate["can_rdkit"] = canon_rdkit
+    #substrate.set_index("can_rdkit", inplace=True)
     substrate = substrate[substrate.duplicated(keep='first') != True]
     substrate = substrate[~substrate.index.duplicated(keep='first')]
     substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
