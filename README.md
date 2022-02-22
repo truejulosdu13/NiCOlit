@@ -1,13 +1,32 @@
-# DFT_for_SM
+# Prediction of reaction yields on a diverty calibrated dataset
 
-Un cool repo avec [maxouille la fripouille](https://lavoixdessportifshandball.weebly.com/maxime-langevin.html)
+This is the code for the "Title to find" paper to be published in ???.
+
+A preprint version can be found on ChemArxiv[link]
+
+# Description :
+
+A description of the different folders is given below :
+
+- aqc_utils : this folder contains usefull tools released by Auto-QChem[https://github.com/PrincetonUniversity/auto-qchem/]
+- data : 
+  * this folder contains the NiCOLit dataset 
+- descriptors :
+- notebook :
+- images :
+- results :
+
+ https://github.com/PrincetonUniversity/auto-qchem/
+
+
+
+Install requirements
+
+Create a new conda environment:
 
 # Description :
 
 - aqc_utils : outils récupérés sur https://github.com/PrincetonUniversity/auto-qchem/
-- dft_descriptors : fichiers .py pour la numérotation des substrats
-- data_csv : fichiers dataset des réactions - numérotation des molécules - descipteurs dft
-- notebooks : jupyter notebooks "workflow"
 
 # Environnement :
 
@@ -20,4 +39,3 @@ conda install -c conda-forge rdkit=2021.03.5
 python -m pip install "pymongo[srv]"
 ```
 
-# Des bisous <3
