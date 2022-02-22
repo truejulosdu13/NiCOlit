@@ -8,20 +8,20 @@ A preprint version can be found on [ChemArxiv](link)
 
 A description of the different folders is given below :
 
-- aqc_utils : this folder contains usefull tools released by [Auto-QChem](https://github.com/PrincetonUniversity/auto-qchem/)
-- data : 
+- **aqc_utils** : this folder contains usefull tools released by [Auto-QChem](https://github.com/PrincetonUniversity/auto-qchem/)
+- **data** : 
   * the NiCOLit dataset downloadable [here](https://github.com/truejulosdu13/DFT_for_SM/blob/main/data/Data_test11262021.csv).
   * HTE : HTE datasets published by [D. T. Anheman *et al.*](https://www.science.org/doi/10.1126/science.aar5169) and [A. B. Santanilla *et al.*](https://www.science.org/doi/10.1126/science.1259203) and used in a publication of [P. Scwhaller](https://rxn4chemistry.github.io/rxn_yields/)
   * utils : csv files of dft molecular featurization needed for dft-featurization.
   * rxnfp_featurization : csv files of Anhemand,  Santilla and NiCOlit datasets featurized with the RXNFP method
-- descriptors :
+- **descriptors** :
   * preprocessing of the NiCOlit datase python script.
   * dft and rdkit featurisation python scripts.
-- notebook :
+- **notebook** :
   * description on going
   * description going
-- images : All images form visualisation...
-- results :
+- **images** : All images form visualisation...
+- **results** :
 
 
 
