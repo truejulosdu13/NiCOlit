@@ -1,4 +1,4 @@
-# Prediction of reaction yields on a diverty calibrated dataset
+# Prediction of reaction yields on a chemical diversity calibrated dataset : the NiCOLit dataset
 
 This is the code for the "Title to find" paper to be published in ???.
 
