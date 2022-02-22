@@ -2,16 +2,20 @@
 
 This is the code for the "Title to find" paper to be published in ???.
 
-A preprint version can be found on ChemArxiv[link]
+A preprint version can be found on [ChemArxiv](link)
 
 # Description :
 
 A description of the different folders is given below :
 
-- aqc_utils : this folder contains usefull tools released by Auto-QChem[https://github.com/PrincetonUniversity/auto-qchem/]
+- aqc_utils : this folder contains usefull tools released by [Auto-QChem](https://github.com/PrincetonUniversity/auto-qchem/)
 - data : 
-  * this folder contains the NiCOLit dataset 
+  * the NiCOLit dataset in a .csv format
+  * HTE : HTE datasets published by [D. T. Anheman *et al.*](https://www.science.org/doi/10.1126/science.aar5169) and [A. B. Santanilla *et al.*](https://www.science.org/doi/10.1126/science.1259203) and used in a publication of [P. Scwhaller](https://rxn4chemistry.github.io/rxn_yields/)
+  * utils : csv files of dft molecular featurization needed for dft-featurization.
+  * rxnfp_featurization : csv files of Anhemand,  Santilla and NiCOlit datasets featurized with the RXNFP method
 - descriptors :
+  * 
 - notebook :
 - images :
 - results :
