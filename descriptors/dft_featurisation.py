@@ -122,7 +122,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
-        mechanisms.append(row["Mechanism"])
+        mechanisms.append(row["A-X type"])
         origins.append(row["type of data (Optimisation or scope)"])
     
     # 10. 
