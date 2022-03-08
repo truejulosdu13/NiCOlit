@@ -110,9 +110,9 @@ def random_split(X, y, stratification, additional_stratification, predictor=Rand
     for strat in np.unique(stratification):
         indexes = np.array([i for i in range(len(stratification)) if stratification[i]==strat])
         if is_classifier(predictor):
-            values, counts = np.unique(y[indexes], return_counts=True)
+            val, counts = np.unique(y[indexes], return_counts=True)
             ind = np.argmax(counts)
-            mean_prediction = np.array(values[ind])
+            mean_prediction = np.array(val[ind])
         else:
             mean_prediction = np.mean(y[indexes])
         stratified_results[strat] = mean_prediction 
@@ -185,9 +185,9 @@ def stratified_split(X, y, stratification, additonal_stratification, metric=mean
             
             # Get baseline predictions
             if is_classifier(pred):
-                values, counts = np.unique(y_outside, return_counts=True)
+                val, counts = np.unique(y_outside, return_counts=True)
                 ind = np.argmax(counts)
-                mean_prediction = [values[ind] for _ in range(len(y_external_test))]
+                mean_prediction = [val[ind] for _ in range(len(y_external_test))]
             else:
                 mean_prediction = [np.mean(y_outside) for _ in range(len(y_external_test))]
                 
