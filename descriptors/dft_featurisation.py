@@ -40,7 +40,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     # 1.
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
-    solvents = [np.array(solv.loc[solvent]) for solvent in df["Solvent"]]
+    solvents = [np.array(solv.loc[solvent]) for solvent in df["solvent"]]
 
     # 2.
     # issue : what should we put for nan ? 
@@ -55,7 +55,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
             canon_rdkit.append(smi)
     ligs["can_rdkit"] = canon_rdkit
     ligs.set_index("can_rdkit", inplace=True)
-    ligands = [np.array(ligs.loc[ligand]) for ligand in df["Ligand effectif"]]
+    ligands = [np.array(ligs.loc[ligand]) for ligand in df["effective_ligand"]]
     
     # 3.
     substrate = pd.read_csv(data_path + "substrate_dft.csv", sep = ',', index_col=0)
@@ -65,7 +65,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     substrate.set_index("can_rdkit", inplace=True)
     substrate = substrate[substrate.duplicated(keep='first') != True]
     substrate = substrate[~substrate.index.duplicated(keep='first')]
-    substrates = [np.array(substrate.loc[sub]) for sub in df["Reactant Smile (C-O)"]]
+    substrates = [np.array(substrate.loc[sub]) for sub in df["substrate"]]
     
     # 4.
     AX = pd.read_csv(data_path + "AX_dft.csv", sep = ',', index_col=0)
@@ -73,7 +73,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     canon_rdkit = [Chem.CanonSmiles(smi_co) for smi_co in AX.index.to_list() ]
     AX["can_rdkit"] = canon_rdkit
     AX.set_index("can_rdkit", inplace=True)
-    AXs = [np.array(AX.loc[ax]) for ax in df["A-X effectif"]]
+    AXs = [np.array(AX.loc[ax]) for ax in df["effective_coupling_partner"]]
     
     # 5.
     AL = pd.read_csv(data_path + "AL_dft.csv", sep = ',', index_col=0)
@@ -94,18 +94,18 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     equiv = equivalents(df)
 
     # 7.
-    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
-    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
+    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["catalyst_precursor"]]).reshape(-1, 1))
+    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["reagents"]]).reshape(-1, 1))
     
     # 8.
     if origin is True:
-        Origin = one_hot_encoding(np.array(df["type of data (Optimisation or scope)"]).reshape(-1, 1))
+        Origin = one_hot_encoding(np.array(df["origin"]).reshape(-1, 1))
         
     # 9. 
     X, yields, DOIs, mechanisms, origins = [], [], [], [], []
     for i, row in df.iterrows():
-        yield_isolated = process_yield(row["Isolated Yield"])
-        yield_gc = process_yield(row['GC/NMR Yield'])
+        yield_isolated = process_yield(row["isolated_yield"])
+        yield_gc = process_yield(row['analytical_yield'])
         # If both yields are known, we keep the isolated yield
         if yield_gc is not None:
             y = yield_gc
@@ -122,8 +122,8 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
-        mechanisms.append(row["A-X type"])
-        origins.append(row["type of data (Optimisation or scope)"])
+        mechanisms.append(row["coupling_partner_class"])
+        origins.append(row["origin"])
     
     # 10. 
     scaler = StandardScaler()
@@ -443,7 +443,7 @@ def one_hot_encoding_with_names(x):
 
 # add temperatures to the featurisation
 def temperatures(df):
-    temp = df["Temperature"].to_list()
+    temp = df["temperature"].to_list()
     temp = ['25' if x == 'rt' else x for x in temp]
     temp = [str(x).replace('°C', '') for x in temp]
     replacements = {'23-100':'60', '23-65':'44', '60-100':'80', '80-120':'100', '110-130':120}
@@ -453,7 +453,7 @@ def temperatures(df):
 
 # adds equivalents to the featurisation
 def equivalents(df):
-    df = df[['eq CO','eq A-X', 'eq Ni', 'eq Lig (lig + prec)','eq B (si reducteur pas pris en c0mpte)']]
+    df = df[['eq_substrate','eq_coupling_partner', 'eq_catalyst', 'eq_ligand','eq_reagent']]
     return df.values.astype(float)
 
 def is_float(value):
@@ -464,10 +464,10 @@ def is_float(value):
         return False
     
 def times(df_t):
-    df_t["Time"] = df_t["Time"].map(lambda x : x.replace('h', ''))
-    df_t["Time"] = df_t["Time"].map(lambda x : float(x) if is_float(x) else x )
-    df_t["Time"] = df_t["Time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
+    df_t["time"] = df_t["time"].map(lambda x : x.replace('h', ''))
+    df_t["time"] = df_t["time"].map(lambda x : float(x) if is_float(x) else x )
+    df_t["time"] = df_t["time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
     replacements = {'2-15':'8.5', '6-12':'9', '>12':'24', '5-20':'12.5'}
     replacer = replacements.get
-    time = [float(replacer(n, n)) for n in df_t["Time"].values]
+    time = [float(replacer(n, n)) for n in df_t["time"].values]
     return np.array(time)

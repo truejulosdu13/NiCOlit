@@ -296,10 +296,10 @@ def origin_mapping(information):
 # Takes as input a dataframe, and returns a vector of features, a vector of yields, and information on the mechanism, DOI, and the scope/optimization nature of the reaction 
 def process_dataframe(df):
     
-    solvents = one_hot_encoding(np.array(df["Solvent"]).reshape(-1, 1))
-    ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["Ligand effectif"]]).reshape(-1, 1))    
-    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["Precurseur Nickel"]]).reshape(-1, 1))
-    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["Base/additif après correction effective"]]).reshape(-1, 1))
+    solvents = one_hot_encoding(np.array(df["solvent"]).reshape(-1, 1))
+    ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["effective_ligand"]]).reshape(-1, 1))    
+    precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["catalyst_precursor"]]).reshape(-1, 1))
+    additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["effective_reagents"]]).reshape(-1, 1))
     
     X = []
     yields = []
@@ -308,21 +308,21 @@ def process_dataframe(df):
     origins = []
     
     for i, row in df.iterrows():
-        yield_isolated = process_yield(row["Isolated Yield"])
-        yield_gc = process_yield(row['GC/NMR Yield'])
+        yield_isolated = process_yield(row["isolated_yield"])
+        yield_gc = process_yield(row['analytical_yield'])
         # If both yields are known, we keep the isolated yield
         if yield_gc is not None:
             y = yield_gc
         if yield_isolated is not None:
             y = yield_isolated
-        rxn_smarts = row["Reactant Smile (C-O)"] + '.' + row["A-X effectif"] + '>>' + row["Product"]
+        rxn_smarts = row["substrate"] + '.' + row["effective_coupling_partner"] + '>>' + row["product"]
         reaction_fp = rxnfp(rxn_smarts)
         feature_vector = np.concatenate((reaction_fp, solvents[i], ligands[i], precursors[i], additives[i]))
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])
-        mechanisms.append(row["A-X type"])
-        origins.append(origin_mapping(row['type of data (Optimisation or scope)']))
+        mechanisms.append(row["coupling_partner_class"])
+        origins.append(origin_mapping(row['origin']))
     
     return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
     

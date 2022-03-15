@@ -22,30 +22,30 @@ def preprocess(df):
     """
  
     # 1
-    df = df[df["Reactant Smile (C-O)"].isna() == False]
+    df = df[df["substrate"].isna() == False]
     # 2
-    df = df[df["Mechanism"] != 'Review'] 
+    df = df[df["review"] != 'Review'] 
     # 3
     df = df[df["DOI"] != 'https://doi.org/10.1021/acs.orglett.5b03151']
     # 4
-    df = df[df["2 Steps"] != "Yes"]
+    df = df[df["2_steps"] != "Yes"]
     # 5
     df = find_Lewis_Acid(df)
     # 6
         # substrate
-    co_can = [Chem.CanonSmiles(smi) for smi in df["Reactant Smile (C-O)"]]
+    co_can = [Chem.CanonSmiles(smi) for smi in df["substrate"]]
         # coupling partner
-    ax_can = [Chem.CanonSmiles(smi) for smi in df["A-X effectif"]]
+    ax_can = [Chem.CanonSmiles(smi) for smi in df["effective_coupling_partner"]]
         # ligand
     lig_can = []
-    for lig in df["Ligand effectif"]:
+    for lig in df["effective_ligand"]:
         try:
             lig_can.append(Chem.CanonSmiles(dict_ligand[lig]))
         except:
             lig_can.append(dict_ligand[str(lig)])
             
         # base-reagents
-    add_can = smiles_additifs(df["Base/additif après correction effective"])
+    add_can = smiles_additifs(df["effective_reagents"])
         # Lewis acid
     al_can = []
     for al in [additives_mapping(al) for al in df["Lewis Acid"]]:
@@ -55,17 +55,17 @@ def preprocess(df):
             al_can.append(al)
             
         # full dataframe
-    df["Reactant Smile (C-O)"] = co_can
-    df["A-X effectif"] = ax_can
-    df["Ligand effectif"] = lig_can
-    df["Base/additif après correction effective"] = add_can
+    df["substrate"] = co_can
+    df["effective_coupling_partner"] = ax_can
+    df["effective_ligand"] = lig_can
+    df["reagents"] = add_can
     df["Lewis Acid"] = al_can
     
     # 7
-    df = df[df["Ligand effectif"] != '[C]1N(C23CC4CC(CC(C4)C2)C3)C=CN1C12CC3CC(CC(C3)C1)C2']
-    df = df[df["A-X effectif"] != "[Li][Zn]([Li])(C)(C)(C)c1ccc(C(=O)N(C(C)C)C(C)C)cc1"]
-    df = df[df["A-X effectif"] != "[Na+].c1ccc([B-](c2ccccc2)(c2ccccc2)c2ccccc2)cc1" ]
-    df = df[df["Reactant Smile (C-O)"] != "COc1ccc(I)cc1" ] 
+    df = df[df["effective_ligand"] != '[C]1N(C23CC4CC(CC(C4)C2)C3)C=CN1C12CC3CC(CC(C3)C1)C2']
+    df = df[df["effective_coupling_partner"] != "[Li][Zn]([Li])(C)(C)(C)c1ccc(C(=O)N(C(C)C)C(C)C)cc1"]
+    df = df[df["effective_coupling_partner"] != "[Na+].c1ccc([B-](c2ccccc2)(c2ccccc2)c2ccccc2)cc1" ]
+    df = df[df["substrate"] != "COc1ccc(I)cc1" ] 
     df["Lewis Acid"] = df["Lewis Acid"].fillna('NoLewisAcid')
     df["Lewis Acid"] = df["Lewis Acid"].replace('nan', 'NoLewisAcid')
     for al in Lewis_Acids_to_drop:
@@ -106,11 +106,11 @@ def find_Lewis_Acid(df):
     # first we find the Lewis Acid for each reaction.
     for i, row in df.iterrows():
         # is there a Lewis Acid in the covalent Lewis Acid column ?
-        base = row["Base_add_covalent_smiles"] 
+        base = row["effective_reagents_covalent"] 
         al = None
         # is there a Lewis Acid in the ionic Lewis Acid column ?
         if isNaN(base): 
-            base = row["Base/additif après correction effective"]
+            base = row["effective_reagents"]
             try:
                 if Chem.CanonSmiles(base) in no_lewis_acid:
                     base = 'NoLewisAcid'
@@ -123,7 +123,7 @@ def find_Lewis_Acid(df):
             # when there is no LA added in the mechanism, the stronger lewis acid is the coupling partner
             # we assume that only one Nickel center is involved in the mechanism.
             if meca in ['Murahashi', 'Kumada', 'Negishi', 'Al _coupling', 'Suzuki']:
-                al = row["A-X effectif"]
+                al = row["effective_coupling_partner"]
                 if Chem.CanonSmiles(al) in no_lewis_acid:
                     al = 'NoLewisAcid'
             else:
@@ -204,22 +204,22 @@ def find_Lewis_Base(df):
         
     Base = []
     for i, row in df.iterrows():
-        base = row["Base/additif après correction effective"]
+        base = row["effective_reagents"]
         if isNaN(base): # if there is no base/additives : the base will be the solvent. 
             try:
                 # if the solvent is not a mix of solvents:
-                base = dict_solvent_to_smiles[row["Solvent"]]
+                base = dict_solvent_to_smiles[row["solvent"]]
             except:
                 # in cas of a solvent mix : a choice is made.
-                if row["Solvent"] == 'tAmOMe + Et2O':
+                if row["solvent"] == 'tAmOMe + Et2O':
                     base = 'CCOCC'
-                elif row["Solvent"] == '(EtO)2CH2 + Et2O':
+                elif row["solvent"] == '(EtO)2CH2 + Et2O':
                     base = 'CCOCC'
-                elif row["Solvent"] == 'THF/DMA' or row["Solvent"] == 'THF + DMA':
+                elif row["solvent"] == 'THF/DMA' or row["solvent"] == 'THF + DMA':
                     base = dict_solvants['THF']
                 
                 else:
-                    print(row["Solvent"])
+                    print(row["solvent"])
         Base.append(base)   
         
     # choose good Lewis Base when more than one candidate is present. 
