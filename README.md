@@ -1,8 +1,9 @@
 # Prediction of reaction yields on a chemical diversity calibrated dataset: the NiCOLit dataset
 
-This is the code for the "Title to find" paper to be published in ???.
+This is the code for the "Can Organic Chemistry Literature Enable Machine
+Learning Yield Prediction ?".
 
-A preprint version can be found on [ChemArxiv](link)
+A preprint version will soon be found on [ChemArxiv](link)
 
 # Description :
 
