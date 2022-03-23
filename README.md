@@ -6,6 +6,8 @@ Learning Yield Prediction ?".
 A preprint version will soon be found on [ChemArxiv](link)
 The NiCOlit dataset is accessible [here](https://github.com/truejulosdu13/NiCOlit/blob/main/data/NiCOlit.csv)
 
+<img src="images/exploration1.svg" alt="Paris" style="width:100%;" class="center">
+
 # Description :
 
 A description of the different folders is given below :
