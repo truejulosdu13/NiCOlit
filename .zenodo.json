@@ -1,0 +1,22 @@
+{
+  "creators": [
+    {
+      "affiliation": "LBM, Département de chimie, École Normale Supérieure, PSL University, Sorbonne Université, CNRS, 75005, Paris, France",
+      "name": "Schleinitz, Jules",
+      "orcid": "0000-0001-7116-4772"
+    },
+     {
+      "affiliation": "PASTEUR, Département de chimie, École Normale Supérieure, PSL University, Sorbonne Université, CNRS, 75005, Paris, France",
+      "name": "Langevin, Maxime",
+      "orcid": "0000-0002-5498-4661"
+    },
+      {
+      "affiliation": "UPMC, PSL University, Sorbonne Université, CNRS, 75005, Paris, France",
+      "name": "Smail, Yanis",
+    },
+      {
+      "affiliation": "UPMC, PSL University, Sorbonne Université, CNRS, 75005, Paris, France",
+      "name": "Wehnert, Benjamin",
+    },
+  ],
+}
