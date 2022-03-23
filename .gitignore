@@ -5,7 +5,7 @@ __pycache__/
 .ipynb_checkpoints
 
 #images and results
-results/*
-images/*
+#results/*
+#images/*
 
 .DS_Store
