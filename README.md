@@ -3,7 +3,7 @@
 This is the code for "Can Organic Chemistry Literature Enable Machine
 Learning Yield Prediction ?".
 
-A preprint version will soon be found on [ChemArxiv](link).
+A preprint version will soon be found on [ChemArxiv](https://chemrxiv.org/engage/chemrxiv/article-details/623b65a08ab37322016f46d0).
 The NiCOlit dataset is accessible [here](https://github.com/truejulosdu13/NiCOlit/blob/main/data/NiCOlit.csv).
 
 <img src="images/exploration1.svg" alt="Paris" style="width:80%;" class="center">
