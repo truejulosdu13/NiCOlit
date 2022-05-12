@@ -37,6 +37,8 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
     """
     
     df = copy.copy(df)
+    class_lig(df)
+    class_sub(df)
     # 1.
     solv = pd.read_csv(data_path + "solvents.csv", sep = ',', index_col=0)
     solv.drop(columns=["polarisabilite", "Unnamed: 9"], inplace=True)
@@ -137,12 +139,57 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
         v_scope = [1 if i < d_scope else 0 for i in range(d_tot)]
         v_optim = [0 if i < d_scope else 1 for i in range(d_tot)]
         
-        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins), (v_scope, v_optim)
+        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins), (v_scope, v_optim), np.array(df.substrate_cat), np.array(df.ligand_cat)
     
     else : 
-        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins)
+        return np.array(X), np.array(yields), np.array(DOIs), np.array(mechanisms), np.array(origins), np.array(df.substrate_cat), np.array(df.ligand_cat)
 
 
+    
+# Classifiction of substrates and ligands:
+def class_lig(df):
+    ligand_cat = ['Phos' ,'DiPhos', 'NHC', 'others']
+    lig_cat = []
+    for smi in df.effective_ligand:
+        if 'P' in smi:
+            if smi.count('P') == 1:
+                lig_cat.append('Phos')
+            else:
+                lig_cat.append('DiPhos')
+        elif '[C]' in smi:
+            lig_cat.append('NHC')
+        else:
+            lig_cat.append('others')  
+    df['ligand_cat'] = lig_cat
+
+def class_sub(df):
+    mols = [Chem.MolFromSmiles(smi) for smi in df.substrate]
+    sub_class = []
+    for mol in mols:
+        if mol.HasSubstructMatch(Chem.MolFromSmiles('c1ncncn1')) or mol.HasSubstructMatch(Chem.MolFromSmiles('C1=NC=NC=N1')):
+            sub_class.append('Otriazine')
+        elif mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1OC(=O)C(C)(C)C')):
+            sub_class.append('OPiv')
+        elif mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1OC(=O)N')) or mol.HasSubstructMatch(Chem.MolFromSmarts('*1****c1OC(=O)N')) or mol.HasSubstructMatch(Chem.MolFromSmarts('*1***c1OC(=O)N')) :
+            sub_class.append('OC(=O)N')
+        elif mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1OC(=O)O')):
+            sub_class.append('OC(=O)O')
+        elif mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1O[Si](C)(C)C')) or mol.HasSubstructMatch(Chem.MolFromSmarts('c1ccccc1o[Si](C)(C)C')):
+            sub_class.append('OSi(C)(C)C')
+        else:
+            mol = Chem.AddHs(mol)
+            if mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1OC(=O)C')):
+                sub_class.append('OAc')
+            elif mol.HasSubstructMatch(Chem.MolFromSmiles('c1ccccc1Oc1ccccc1')):
+                sub_class.append('OPh')
+            elif mol.HasSubstructMatch(Chem.MolFromSmiles('OCOC')):
+                sub_class.append('OCOC')
+            elif mol.HasSubstructMatch(Chem.MolFromSmiles('OC([H])([H])[H]')):
+                sub_class.append('OCH3')
+            else:
+                sub_class.append('others')           
+    sub_classes = np.unique(sub_class)
+    df['substrate_cat'] = sub_class
 
 # Dft descriptors that have been removed from the description :
 descritpors_to_remove_al = ["converged", "stoichiometry", "ES_root_molar_volume", "X_0", "Y_0", "Z_0", "at_0", "ES_transition_7", "ES_transition_8", "ES_transition_9", 'ES_osc_strength_7', 'ES_osc_strength_8', 'ES_osc_strength_9', 'ES_<S**2>_7', 'ES_<S**2>_8', 'ES_<S**2>_9']
