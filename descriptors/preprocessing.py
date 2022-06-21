@@ -4,7 +4,7 @@ from rdkit import RDLogger
 RDLogger.logger().setLevel(RDLogger.CRITICAL)
 
 
-def preprocess(df):
+def preprocess(df, remove_small_doi=True):
     """Preprocesses the dataframe as described in the article : reference.
     ### 1.None substrates are removed.
     ### 2.Reaction extracted from Chemical Reviews are removed.
@@ -74,14 +74,15 @@ def preprocess(df):
     df = df.reset_index(drop=True)
     
     # 8.
-    vc = df.DOI.value_counts()
-    doi_above_20 = np.array(vc[vc > 20].index)
-    indexes = []
-    for i, row in df.iterrows():
-        if row["DOI"] not in doi_above_20:
-            indexes.append(i)
-    df = df.drop(indexes)
-    df = df.reset_index(drop=True)
+    if remove_small_doi==True:
+        vc = df.DOI.value_counts()
+        doi_above_20 = np.array(vc[vc > 20].index)
+        indexes = []
+        for i, row in df.iterrows():
+            if row["DOI"] not in doi_above_20:
+                indexes.append(i)
+        df = df.drop(indexes)
+        df = df.reset_index(drop=True)
 
     return df
 
