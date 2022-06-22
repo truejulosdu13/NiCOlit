@@ -70,9 +70,7 @@ def preprocess(df, remove_small_doi=True):
     df["Lewis Acid"] = df["Lewis Acid"].replace('nan', 'NoLewisAcid')
     for al in Lewis_Acids_to_drop:
         df = df[df["Lewis Acid"] != al]
-    
-    df = df.reset_index(drop=True)
-    
+        
     # 8.
     if remove_small_doi==True:
         vc = df.DOI.value_counts()
@@ -82,9 +80,8 @@ def preprocess(df, remove_small_doi=True):
             if row["DOI"] not in doi_above_20:
                 indexes.append(i)
         df = df.drop(indexes)
-        df = df.reset_index(drop=True)
 
-    return df
+    return df, indexes
 
 
 
