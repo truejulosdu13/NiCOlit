@@ -1,0 +1,118 @@
+inputs {
+  value {
+    components {
+      identifiers {
+        type: SMILES
+        value: "$substrate$"
+      }
+      amount {
+        moles {
+          value: $eq_substrate$
+          units: EQUIVALENT
+        }
+      }
+      reaction_role: REACTANT
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$effective_coupling_partner$"
+      }
+      amount {
+        moles {
+          value: $eq_coupling_partner$
+          units: EQUIVALENT
+        }
+      }
+      reaction_role: REACTANT
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$smi_catalyst_precursor"
+      }
+      amount {
+        moles {
+          value: $eq_catalyst$
+          units: EQUIVALENT
+        }
+      }
+      reaction_role: CATALYST
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$smi_solvent$"
+      }
+      reaction_role: SOLVENT
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$effective_reagents$"
+      }
+      amount {
+        moles {
+          value: $eq_reagent$
+          units: EQUIVALENT
+        }
+      }
+      reaction_role: REAGENT
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$smi_effective_ligand$"
+      }
+      amount {
+        moles {
+          value: $eq_ligand$
+          units: EQUIVALENT
+        }
+      }
+      reaction_role: REAGENT
+    }
+  }
+}
+conditions {
+  temperature {
+    setpoint {
+      value: $temperature$
+      units: CELSIUS
+    }
+  }
+}
+outcomes {
+  reaction_time {
+    value: $time_h$
+    units: HOUR
+  }
+  products {
+    identifiers {
+      type: SMILES
+      value: "$product$"
+    }
+    is_desired_product: true
+    measurements {
+      type: YIELD
+      percentage {
+        value: $yield$
+      }
+    }
+    reaction_role: PRODUCT
+  }
+}
+provenance {
+  publication_url: "https://chemrxiv.org/engage/chemrxiv/article-details/6284d433d555509f629e4de2"
+  record_created {
+    time {
+      value: "11/07/2022, 17:47:19"
+    }
+    person {
+      name: "Jules Schleinitz"
+      organization: "ENS Paris"
+      email: "jules.schleinitz@ens.psl.eu"
+    }
+  }
+}
+reaction_id: "ord-f54096801e3c40eab2329395bd4ea0e7"

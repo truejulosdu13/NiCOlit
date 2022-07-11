@@ -200,6 +200,7 @@ dict_smiles_catalysts = {
     'Cl[Ni](Cl)([P+](c1ccccc1)(c2ccccc2)C(Nc3ccccc3n5nc(c4ccccc4)cc5c6ccccc6)c7ccccc7)[P+](c8ccccc8)(c9ccccc9)C(Nc%10ccccc%10n%12nc(c%11ccccc%11)cc%12c%13ccccc%13)c%14ccccc%14' : 'P(c1ccccc1)(c2ccccc2)(C(Nc3ccccc3n5nc(c4ccccc4)cc5c6ccccc6)c7ccccc7)->[Ni](Cl)(Cl)<-P(c8ccccc8)(c9ccccc9)C(Nc%10ccccc%10n%12nc(c%11ccccc%11)cc%12c%13ccccc%13)c%14ccccc%14',
     'Ni(PCy3)2(C2H4)': 'C1CCCCC1P(C1CCCCC1)(C1CCCCC1)->[Ni]<-2(<-P(C1CCCCC1)(C1CCCCC1)C1CCCCC1)(<-C=C2)',
     'NiBr2(PPh3)2': 'c1ccccc1P(c1ccccc1)(c1ccccc1)->[Ni](<-P(c1ccccc1)(c1ccccc1)(c1ccccc1))(Br)(Br)', 
+    'NiBr2(PCy3)2': 'C1CCCCC1P(C1CCCCC1)(C1CCCCC1)->[Ni](<-P(C1CCCCC1)(C1CCCCC1)(C1CCCCC1))(Br)(Br)', 
     
     'NiCl2(glyme)': 'CO1CCO(->[Ni]<-1(Cl)(Cl))C', 
     'NiCl2(dme)': 'CO1CCO(->[Ni]<-1(Cl)(Cl))C',
@@ -243,7 +244,15 @@ dict_smiles_catalysts = {
     'NiCl2(dppe)': 'c5ccc(P4(c1ccccc1)CCP(c2ccccc2)(c3ccccc3)->[Ni](Cl)(Cl)<-4)cc5',
     'NiCl2(dppp)': 'c5ccc(P4(c1ccccc1)CCCP(c2ccccc2)(c3ccccc3)->[Ni](Cl)(Cl)<-4)cc5', 
     'NiCl2(dppb)': 'c5ccc(P4(c1ccccc1)CCCCP(c2ccccc2)(c3ccccc3)->[Ni](Cl)(Cl)<-4)cc5', 
-    'NiCl2(dppf)': 'c5ccc(P4(c1ccccc1)C6(=CC=C[C-]76)->[Fe++]<-7<-9<-C8(=CC=C[C-]89)P(c2ccccc2)(c3ccccc3)->[Ni](Cl)(Cl)<-4)cc5'
+    'NiCl2(dppf)': 'c5ccc(P4(c1ccccc1)C6(=CC=C[C-]76)->[Fe++]<-7<-9<-C8(=CC=C[C-]89)P(c2ccccc2)(c3ccccc3)->[Ni](Cl)(Cl)<-4)cc5',
+    
+    'NiCl2(IPr) (PPh3)' : 'c2(C(C)C)cccc(C(C)C)c2N1C=CN(c2c(C(C)C)cccc2C(C)C)[C]1->[Ni](Cl)(Cl)<-P(c1ccccc1)(c1ccccc1)c1ccccc1',
+    'NiBr2(PPh3)(IPr)'  : 'c2(C(C)C)cccc(C(C)C)c2N1C=CN(c2c(C(C)C)cccc2C(C)C)[C]1->[Ni](Br)(Br)<-P(c1ccccc1)(c1ccccc1)c1ccccc1',
+    'NiBr2(PCy3)(IPr)'  : 'c2(C(C)C)cccc(C(C)C)c2N1C=CN(c2c(C(C)C)cccc2C(C)C)[C]1->[Ni](Br)(Br)<-P(C1CCCCC1)(C1CCCCC1)C1CCCCC1',
+    'NiCl2(PPh3)(ItBu)' : 'CC(C)(C)N1C=CN(C(C)(C)C)[C]1->[Ni](Cl)(Cl)<-P(c1ccccc1)(c1ccccc1)c1ccccc1',
+    'NiBr2(PPh3)(ItBu)' : 'CC(C)(C)N1C=CN(C(C)(C)C)[C]1->[Ni](Br)(Br)<-P(c1ccccc1)(c1ccccc1)c1ccccc1',
+    'NiBr2(PCy3)(ItBu)' : 'CC(C)(C)N1C=CN(C(C)(C)C)[C]1->[Ni](Br)(Br)<-P(C1CCCCC1)(C1CCCCC1)C1CCCCC1',
+    'NiBr2(IPr)2' :  'c2(C(C)C)cccc(C(C)C)c2N1C=CN(c2c(C(C)C)cccc2C(C)C)[C]1->[Ni](Br)(Br)<-[C]1N(c2c(C(C)C)cccc2C(C)C)C=CN1c2c(C(C)C)cccc2C(C)C'
 }
 
 

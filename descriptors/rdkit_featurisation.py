@@ -13,12 +13,14 @@ def process_dataframe(df):
     ligands = one_hot_encoding(np.array([ligand_mapping(precursor) for precursor in df["effective_ligand"]]).reshape(-1, 1))    
     precursors = one_hot_encoding(np.array([precursor_mapping(precursor) for precursor in df["catalyst_precursor"]]).reshape(-1, 1))
     additives = one_hot_encoding(np.array([additives_mapping(precursor) for precursor in df["effective_reagents"]]).reshape(-1, 1))
+
     
     X = []
     yields = []
     DOIs = []
     mechanisms = []
     origins = []
+
     
     for i, row in df.iterrows():
         yield_isolated = process_yield(row["isolated_yield"])
@@ -152,4 +154,35 @@ def origin_mapping(information):
         return "scope"
     
 
+    
+    # add temperatures to the featurisation
+def temperatures(df):
+    temp = df["temperature"].to_list()
+    temp = ['25' if x == 'rt' else x for x in temp]
+    temp = [str(x).replace('°C', '') for x in temp]
+    replacements = {'23-100':'60', '23-65':'44', '60-100':'80', '80-120':'100', '110-130':120}
+    replacer = replacements.get
+    temp = [float(replacer(n, n)) for n in temp]
+    return np.array(temp)
+
+# adds equivalents to the featurisation
+def equivalents(df):
+    df = df[['eq_substrate','eq_coupling_partner', 'eq_catalyst', 'eq_ligand','eq_reagent']]
+    return df.values.astype(float)
+
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except:
+        return False
+    
+def times(df_t):
+    df_t["time"] = df_t["time"].map(lambda x : x.replace('h', ''))
+    df_t["time"] = df_t["time"].map(lambda x : float(x) if is_float(x) else x )
+    df_t["time"] = df_t["time"].map(lambda x : float(x.replace('min',''))/60 if 'min' in str(x) else x)
+    replacements = {'2-15':'8.5', '6-12':'9', '>12':'24', '5-20':'12.5'}
+    replacer = replacements.get
+    time = [float(replacer(n, n)) for n in df_t["time"].values]
+    return np.array(time)
     

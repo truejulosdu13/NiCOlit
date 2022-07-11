@@ -1,0 +1,102 @@
+inputs {
+  value {
+    components {
+      identifiers {
+        type: SMILES
+        value: "$substrate$"
+      }
+      
+      reaction_role: REACTANT
+    }
+    components {
+      identifiers {
+        type: SMILES
+        value: "$effective_coupling_partner$"
+      }
+      reaction_role: REACTANT
+    }
+    components {
+      identifiers {
+        type: NAME
+        value: "Ni(COD)2"
+      }
+      identifiers {
+        type: SMILES
+        details: "NAME resolved by the PubChem API"
+        value: "C1=C\\CC/C=C\\CC/1.C1=C\\CC/C=C\\CC/1.[Ni]"
+      }
+      reaction_role: CATALYST
+    }
+    components {
+      identifiers {
+        type: NAME
+        value: "toluene"
+      }
+      identifiers {
+        type: SMILES
+        details: "NAME resolved by the PubChem API"
+        value: "Cc1ccccc1"
+      }
+      reaction_role: SOLVENT
+    }
+    components {
+      identifiers {
+        type: NAME
+        value: "K3PO4"
+      }
+      identifiers {
+        type: SMILES
+        details: "NAME resolved by the PubChem API"
+        value: "O=P([O-])([O-])[O-].[K+].[K+].[K+]"
+      }
+      reaction_role: REAGENT
+    }
+    components {
+      identifiers {
+        type: MOLBLOCK
+        details: "Drawn with Ketcher"
+        value: "\n  Ketcher  7112217492D 1   1.00000     0.00000     0\n\n 13 14  0  0  0  0            999 V2000\n    5.3098   -3.8001    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    7.0402   -3.7996    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    6.1766   -3.3000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    7.0402   -4.8005    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    5.3098   -4.8050    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    6.1788   -5.3000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    7.9064   -3.3000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0\n    8.7722   -3.8004    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   10.5025   -3.7988    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    9.6387   -3.2997    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n   10.5032   -4.7997    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    8.7729   -4.8053    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n    9.6422   -5.2998    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n  3  1  2  0     0  0\n  4  2  2  0     0  0\n  1  5  1  0     0  0\n  2  3  1  0     0  0\n  5  6  2  0     0  0\n  6  4  1  0     0  0\n  2  7  1  0     0  0\n  7  8  1  0     0  0\n 10  8  2  0     0  0\n 11  9  2  0     0  0\n  8 12  1  0     0  0\n  9 10  1  0     0  0\n 12 13  2  0     0  0\n 13 11  1  0     0  0\nM  END\n"
+      }
+      identifiers {
+        type: SMILES
+        details: "Drawn with Ketcher"
+        value: "c1ccc(Nc2ccccc2)cc1"
+      }
+      reaction_role: PRODUCT
+    }
+  }
+}
+conditions {
+  temperature {
+    setpoint {
+      value: 25.0
+      units: CELSIUS
+    }
+  }
+}
+outcomes {
+  analyses {
+    value {
+      data {
+        key: "yield"
+        value {
+          string_value: "94"
+        }
+      }
+    }
+  }
+}
+provenance {
+  publication_url: "https://chemrxiv.org/engage/chemrxiv/article-details/6284d433d555509f629e4de2"
+  record_created {
+    time {
+      value: "11/07/2022, 17:47:19"
+    }
+    person {
+      name: "Schleinitz"
+      organization: "ENS Paris"
+      email: "jules.schleinitz@ens.psl.eu"
+    }
+  }
+}
+reaction_id: "ord-f54096801e3c40eab2329395bd4ea0e7"
