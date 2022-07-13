@@ -22,7 +22,15 @@ A description of the different folders is given below :
   * preprocessing of the NiCOlit dataset.
   * DFT and RDKit featurisation.
 - **images** : All images displayed in the article.
-
+- **notebooks_dft** : All notebooks allowing to compute the DFT featurizations of molecules in the dataset
+- **notebooks_ord** : All notebooks necessary for producing the csv for ORD submission of NiCOlit
+- **notebooks_dataset_analysis**:
+ * 01_visualization_chemical_analysis: Displays the relative occurences of coupling-partner/substrate/ligand pairs in NiCOlit (Figure 1 of the paper)
+ * 02_visualization_diversity_and_scope_optimization_structure: Analysis of the dataset's chemical diversity and scope optimisation structure (Figure 2 and 3 of the paper)
+ * 03_visualization_chemical_space_exploration: Displays the dataset with an analysis of DOI/coupling partners/substrate repartition within the dataset (Figure 4 of the paper)
+ * 04_visualization_nickel_precursors: visualiszing catalysts precursors 
+- **notebooks_prediction_results**: all notebooks necessary to run the different machine learning models
+- **notebooks_prediction_visualisation**: all notebooks necessary to analyze the predictions of machine learning models
 
 # Install requirements
 
@@ -30,4 +38,8 @@ Best use with following requirements :
 ```
 pip install -r requirements.txt
 ```
+
+# Reproducing figures and experiments
+
+In order to reproduce the figures and experimens from the paper, you can run in order the notebooks in the different **notebooks** sections (except the ones in the **notebooks_dft**, that were used to compute the DFT descriptors which are direclty accessible in the data folder). The only prerequisite is running the notebooks from **notebooks_prediction_results** before those from **notebooks_prediction_visualization**. 
 
