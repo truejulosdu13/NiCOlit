@@ -25,10 +25,10 @@ A description of the different folders is given below :
 - **notebooks_dft** : All notebooks allowing to compute the DFT featurizations of molecules in the dataset
 - **notebooks_ord** : All notebooks necessary for producing the csv for ORD submission of NiCOlit
 - **notebooks_dataset_analysis**:
- * 01_visualization_chemical_analysis: Displays the relative occurences of coupling-partner/substrate/ligand pairs in NiCOlit (Figure 1 of the paper)
- * 02_visualization_diversity_and_scope_optimization_structure: Analysis of the dataset's chemical diversity and scope optimisation structure (Figure 2 and 3 of the paper)
- * 03_visualization_chemical_space_exploration: Displays the dataset with an analysis of DOI/coupling partners/substrate repartition within the dataset (Figure 4 of the paper)
- * 04_visualization_nickel_precursors: visualiszing catalysts precursors 
+  * 01_visualization_chemical_analysis: Displays the relative occurences of coupling-partner/substrate/ligand pairs in NiCOlit (Figure 1 of the paper)
+  * 02_visualization_diversity_and_scope_optimization_structure: Analysis of the dataset's chemical diversity and scope optimisation structure (Figure 2 and 3 of the paper)
+  * 03_visualization_chemical_space_exploration: Displays the dataset with an analysis of DOI/coupling partners/substrate repartition within the dataset (Figure 4 of the paper)
+  * 04_visualization_nickel_precursors: visualiszing catalysts precursors 
 - **notebooks_prediction_results**: all notebooks necessary to run the different machine learning models
 - **notebooks_prediction_visualisation**: all notebooks necessary to analyze the predictions of machine learning models
 
