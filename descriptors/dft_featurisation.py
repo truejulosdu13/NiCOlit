@@ -121,7 +121,7 @@ def process_dataframe_dft(df, data_path = '/data/utils', origin=False, dim=False
                 feature_vector = np.concatenate((substrates[i], AXs[i]))  
             else:
                 feature_vector = np.concatenate((substrates[i], AXs[i], solvents[i], ligands[i], precursors[i], ALs[i], [temp[i]], equiv[i], [time[i]]))
-            
+        
         X.append(feature_vector)
         yields.append(y)
         DOIs.append(row["DOI"])

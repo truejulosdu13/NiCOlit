@@ -72,15 +72,19 @@ def preprocess(df, remove_small_doi=True):
         df = df[df["Lewis Acid"] != al]
         
     # 8.
+    
+    vc = df.DOI.value_counts()
+    doi_above_20 = np.array(vc[vc > 20].index)
+    indexes = []
+    for i, row in df.iterrows():
+        if row["DOI"] not in doi_above_20:
+            indexes.append(i)
+            
     if remove_small_doi==True:
-        vc = df.DOI.value_counts()
-        doi_above_20 = np.array(vc[vc > 20].index)
-        indexes = []
-        for i, row in df.iterrows():
-            if row["DOI"] not in doi_above_20:
-                indexes.append(i)
         df = df.drop(indexes)
-
+    
+    df.reset_index(inplace=True)
+    
     return df, indexes
 
 
