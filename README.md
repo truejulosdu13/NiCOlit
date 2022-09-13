@@ -1,9 +1,9 @@
 # Prediction of reaction yields on a chemical diversity calibrated dataset: the NiCOLit dataset
 
-This is the code for "Can Organic Chemistry Literature Enable Machine
-Learning Yield Prediction ?".
+This is the code used to generate the results published in [Machine Learning Yield Prediction from NiCOlit, a Small-Size Literature Data Set of Nickel Catalyzed C–O Couplings](https://pubs.acs.org/doi/abs/10.1021/jacs.2c05302)
 
-A preprint version will soon be found on [ChemArxiv](https://chemrxiv.org/engage/chemrxiv/article-details/623b65a08ab37322016f46d0).
+A preprint version is available on [ChemArxiv](https://chemrxiv.org/engage/chemrxiv/article-details/6284d433d555509f629e4de2).
+
 The NiCOlit dataset is accessible [here](https://github.com/truejulosdu13/NiCOlit/blob/master/data/NiCOlit.csv).
 
 <img src="images/exploration1.svg" alt="Paris" style="width:80%;" class="center">
